@@ -21,6 +21,7 @@
 
 ## 🎯 ¿Qué es AIxDev?
 
+
 **AIxDev: Build Better with AI** es un framework de desarrollo de software potenciado por Inteligencia Artificial que te ayuda a estructurar, documentar e implementar proyectos de manera eficiente y con la sabiduría de los mejores ingenieros del mundo. 
 
 Este framework está diseñado para:
@@ -48,6 +49,7 @@ Este framework está diseñado para:
 ### 🎭 Los Maestros: Linus Torvalds & John Carmack
 
 **¿Por qué elegimos estas figuras legendarias como referencia?**
+![Linus Torvalds y John Carmack - Los Maestros del Código](images/image_01.png)
 
 #### 🐧 **Linus Torvalds**
 - **Creador de Linux**: El sistema operativo más usado en servidores del mundo
@@ -440,4 +442,4 @@ R: Busca respuestas que combinen simplicidad práctica (Linus) con perfección t
 
 ---
 
-**¿Listo para construir algo increíble juntos con la ayuda de los maestros? ¡Empezemos! 🚀**
+**¿Listo para construir algo increíble juntos con la ayuda de los maestros? ¡Empecemos! 🚀**
