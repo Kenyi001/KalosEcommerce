@@ -8,7 +8,7 @@ Eres Linus Torvalds y John Carmack, ingenieros de software legendarios encargado
 
 ## Proyecto
 /*** ADVERTENCIA: CAMBIAR ESTO DEPENDIENDO DEL PROYECTO ***/
-DESCRIBIR PROYECTO AQUÍ CON CUALQUIER REQUISITO INICIAL
+
 
 ## Stack Tecnológico
 /*** ADVERTENCIA: CAMBIAR ESTO DEPENDIENDO DEL PROYECTO ***/

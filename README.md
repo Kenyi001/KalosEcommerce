@@ -1,7 +1,9 @@
-# 🚀 BuildBetterTogether
+# 🚀 AIxDev: Build Better with AI
+💡 Idea → 🧾 Instrucciones → 📋 PRD → 🗺️ Plan → 🎫 Tickets → 💻 Implementación → ✅ Validación
+
 
 ## 📋 Tabla de Contenidos
-- [🎯 ¿Qué es BuildBetterTogether?](#-qué-es-buildbettertogether)
+- [🎯 ¿Qué es AIxDev?](#-qué-es-aixdev)
 - [✨ Características Principales](#-características-principales)
 - [🤖 Integración con LLMs](#-integración-con-llms)
 - [🗂️ Estructura del Proyecto](#️-estructura-del-proyecto)
@@ -13,12 +15,13 @@
 - [💡 Consejos y Mejores Prácticas](#-consejos-y-mejores-prácticas)
 - [❓ Preguntas Frecuentes](#-preguntas-frecuentes)
 - [🔧 Solución de Problemas](#-solución-de-problemas)
+- [📖 Glosario de Términos](#-glosario-de-términos)
 
 ---
 
-## 🎯 ¿Qué es BuildBetterTogether?
+## 🎯 ¿Qué es AIxDev?
 
-**BuildBetterTogether** es un sistema de gestión de proyectos de desarrollo de software que te ayuda a estructurar, documentar e implementar proyectos de manera eficiente y colaborativa. 
+**AIxDev: Build Better with AI** es un framework de desarrollo de software potenciado por Inteligencia Artificial que te ayuda a estructurar, documentar e implementar proyectos de manera eficiente y con la sabiduría de los mejores ingenieros del mundo. 
 
 Este framework está diseñado para:
 - 📖 **Documentar** proyectos de software de manera sistemática
@@ -40,7 +43,7 @@ Este framework está diseñado para:
 
 ## 🤖 Integración con LLMs
 
-> 🚀 **BuildBetterTogether** está diseñado para maximizar el potencial de los **Modelos de Lenguaje Grande (LLMs)** como Claude, GPT, Cursor AI, y otros.
+> 🚀 **AIxDev** está diseñado para maximizar el potencial de los **Modelos de Lenguaje Grande (LLMs)** como Claude, GPT, Cursor AI, y otros.
 
 ### 🎭 Los Maestros: Linus Torvalds & John Carmack
 
@@ -109,7 +112,7 @@ Los LLMs se convierten en **pair programmers expertos** que:
 ## 🗂️ Estructura del Proyecto
 
 ```
-BuildBetterTogether/
+AIxDev/
 ├── 📁 prompts/              # Plantillas y guías
 │   ├── instructions.md      # Instrucciones principales
 │   ├── guidelines.md        # Guías de código (para Cursor)
@@ -227,6 +230,16 @@ Para confirmar que la configuración funciona:
 > 📝 **Objetivo**: Crear documentación completa y estructurada
 
 #### Paso 2.1: Especificaciones PRD 📋
+
+> **¿Qué es un PRD?** 
+> 
+> **PRD** significa **Product Requirements Document** (Documento de Requisitos del Producto). Es un documento fundamental que define:
+> - **QUÉ** se va a construir (funcionalidades y características)
+> - **POR QUÉ** se necesita (objetivos de negocio y usuario)
+> - **PARA QUIÉN** es el producto (usuarios objetivo)
+> - **CÓMO** debe comportarse (casos de uso y flujos)
+> 
+ > En AIxDev, el PRD sirve como la **base técnica** que guiará todo el desarrollo.
 
 ```
 Sigue las instrucciones y escribe el paso 1 de documentación, Especificaciones PRD. 
@@ -372,7 +385,58 @@ R: Busca respuestas que combinen simplicidad práctica (Linus) con perfección t
 5. **📝 Sigue el proceso paso a paso**
 6. **🔄 Mantén la documentación actualizada**
 
-> 💡 **Recuerda**: BuildBetterTogether es un proceso iterativo potenciado por LLMs. Cada ciclo te ayudará a mejorar la calidad y eficiencia de tus proyectos, combinando la sabiduría de dos genios legendarios del desarrollo de software.
+ > 💡 **Recuerda**: AIxDev es un proceso iterativo potenciado por LLMs. Cada ciclo te ayudará a mejorar la calidad y eficiencia de tus proyectos, combinando la sabiduría de dos genios legendarios del desarrollo de software.
+
+---
+
+## 📖 Glosario de Términos
+
+### 🔤 **Términos Técnicos**
+
+**PRD** - *Product Requirements Document*
+> Documento de Requisitos del Producto que define QUÉ, POR QUÉ, PARA QUIÉN y CÓMO del proyecto.
+
+**LLM** - *Large Language Model*
+> Modelos de Lenguaje Grande como Claude, GPT, etc. que potencian AIxDev.
+
+**DRY** - *Don't Repeat Yourself*
+> Principio de programación que evita la duplicación de código y lógica.
+
+**Cursor Rules** - *Reglas de Cursor*
+> Configuración que define cómo debe comportarse el AI de Cursor en tu proyecto.
+
+### 🎭 **Personalidades Legendarias**
+
+**Linus Torvalds**
+> Creador de Linux y Git. Aporta pragmatismo, simplicidad y gestión de proyectos masivos.
+
+**John Carmack**
+> Pionero de gráficos 3D. Aporta precisión técnica, optimización y arquitecturas innovadoras.
+
+### 📋 **Metodología AIxDev**
+
+**Tickets**
+> Unidades individuales de trabajo con criterios de aceptación específicos.
+
+**Criterios de Aceptación**
+> Condiciones específicas que deben cumplirse para considerar un ticket como completado.
+
+**Specs** - *Specifications*
+> Especificaciones técnicas detalladas que definen la arquitectura del sistema.
+
+**Pair Programming**
+> Técnica de desarrollo donde dos personas trabajan juntas en el mismo código (en nuestro caso, humano + LLM).
+
+### 🔧 **Herramientas**
+
+**Cursor AI**
+> Editor de código potenciado por AI que puede seguir reglas específicas del proyecto.
+
+**GitHub Copilot**
+> Asistente de código de GitHub que sugiere código en tiempo real.
+
+**Claude/GPT**
+> Modelos de lenguaje para consultas complejas y planificación arquitectónica.
 
 ---
 
