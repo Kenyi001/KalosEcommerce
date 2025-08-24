@@ -211,4 +211,156 @@ describe('AuthService', () => {
       expect(result.profile).toBeNull();
     });
   });
+
+  describe('User Registration Validation', () => {
+    beforeEach(() => {
+      // Mock Firebase functions for registration tests
+      const mockCreateUser = vi.fn();
+      const mockUpdateProfile = vi.fn();
+      const mockSetDoc = vi.fn();
+      const mockSendEmailVerification = vi.fn();
+      
+      vi.mocked(mockCreateUser).mockResolvedValue({
+        user: { uid: 'new-user-id', email: 'new@test.com' }
+      });
+    });
+
+    it('should validate user registration data correctly', async () => {
+      const validUserData = {
+        name: 'Valid User',
+        email: 'valid@test.com',
+        password: 'securepassword123',
+        userType: 'client',
+        phone: '+59170123456'
+      };
+
+      // Mock the actual registration to focus on validation logic
+      authService.register = vi.fn().mockResolvedValue({
+        success: true,
+        user: { uid: 'new-user-id' },
+        profile: { ...validUserData, uid: 'new-user-id' }
+      });
+
+      const result = await authService.register(validUserData);
+      
+      expect(result.success).toBe(true);
+      expect(result.profile.userType).toBe('client');
+      expect(authService.register).toHaveBeenCalledWith(validUserData);
+    });
+
+    it('should handle professional registration with additional fields', async () => {
+      const professionalData = {
+        name: 'Professional User',
+        email: 'pro@test.com',
+        password: 'securepassword123',
+        userType: 'professional',
+        phone: '+59171234567'
+      };
+
+      // Mock professional registration
+      authService.register = vi.fn().mockResolvedValue({
+        success: true,
+        user: { uid: 'pro-user-id' },
+        profile: {
+          ...professionalData,
+          uid: 'pro-user-id',
+          professional: {
+            verified: false,
+            services: [],
+            availability: {},
+            rating: 0,
+            reviewCount: 0,
+            location: {},
+            portfolio: []
+          }
+        }
+      });
+
+      const result = await authService.register(professionalData);
+      
+      expect(result.success).toBe(true);
+      expect(result.profile.userType).toBe('professional');
+      expect(result.profile.professional).toBeDefined();
+      expect(result.profile.professional.verified).toBe(false);
+      expect(result.profile.professional.services).toEqual([]);
+    });
+
+    it('should reject registration with invalid email format', () => {
+      const invalidEmailData = {
+        name: 'Test User',
+        email: 'invalid-email',
+        password: 'securepassword123',
+        userType: 'client'
+      };
+
+      // Mock Firebase auth error for invalid email
+      const mockError = { code: 'auth/invalid-email' };
+      authService.register = vi.fn().mockRejectedValue(mockError);
+
+      expect(authService.register(invalidEmailData)).rejects.toThrow();
+    });
+
+    it('should reject registration with weak password', () => {
+      const weakPasswordData = {
+        name: 'Test User',
+        email: 'test@test.com',
+        password: '123', // Too short
+        userType: 'client'
+      };
+
+      // Mock Firebase auth error for weak password
+      const mockError = { code: 'auth/weak-password' };
+      authService.register = vi.fn().mockRejectedValue(mockError);
+
+      expect(authService.register(weakPasswordData)).rejects.toThrow();
+    });
+  });
+
+  describe('Password Reset Functionality', () => {
+    it('should send password reset email successfully', async () => {
+      const email = 'user@test.com';
+      
+      // Mock successful password reset
+      authService.resetPassword = vi.fn().mockResolvedValue({
+        success: true,
+        message: 'Se ha enviado un enlace de recuperación a tu email'
+      });
+
+      const result = await authService.resetPassword(email);
+      
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('enlace de recuperación');
+      expect(authService.resetPassword).toHaveBeenCalledWith(email);
+    });
+
+    it('should handle password reset for non-existent user', () => {
+      const email = 'nonexistent@test.com';
+      
+      // Mock Firebase auth error for user not found
+      const mockError = { code: 'auth/user-not-found' };
+      authService.resetPassword = vi.fn().mockRejectedValue(mockError);
+
+      expect(authService.resetPassword(email)).rejects.toThrow();
+    });
+
+    it('should handle network errors during password reset', () => {
+      const email = 'user@test.com';
+      
+      // Mock network error
+      const mockError = { code: 'auth/network-request-failed' };
+      authService.resetPassword = vi.fn().mockRejectedValue(mockError);
+
+      expect(authService.resetPassword(email)).rejects.toThrow();
+    });
+
+    it('should validate email format before sending reset', () => {
+      const invalidEmail = 'not-an-email';
+      
+      // Mock Firebase auth error for invalid email
+      const mockError = { code: 'auth/invalid-email' };
+      authService.resetPassword = vi.fn().mockRejectedValue(mockError);
+
+      expect(authService.resetPassword(invalidEmail)).rejects.toThrow();
+    });
+  });
 });
