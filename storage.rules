@@ -1,0 +1,135 @@
+// Firebase Storage Security Rules for Kalos E-commerce
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserRole(userId) {
+      return firestore.get(/databases/(default)/documents/users/$(userId)).data.userType;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole(request.auth.uid) == 'admin';
+    }
+    
+    function isProfessional() {
+      return isAuthenticated() && getUserRole(request.auth.uid) == 'professional';
+    }
+    
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*') &&
+        request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp'];
+    }
+    
+    function isValidImageSize() {
+      return request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    }
+    
+    function isValidVideoType() {
+      return request.resource.contentType.matches('video/.*') &&
+        request.resource.contentType in ['video/mp4', 'video/webm'];
+    }
+    
+    function isValidVideoSize() {
+      return request.resource.size < 20 * 1024 * 1024; // 20MB limit
+    }
+
+    // Public files (readable by everyone)
+    match /public/{allPaths=**} {
+      allow read: if true;
+      
+      // Only admins can write to public directory
+      allow write: if isAdmin() && 
+        ((isValidImageType() && isValidImageSize()) ||
+         (isValidVideoType() && isValidVideoSize()));
+    }
+
+    // User profile pictures
+    match /users/{userId}/profile/{fileName} {
+      allow read: if true; // Profile pictures are public
+      
+      allow write: if isOwner(userId) &&
+        isValidImageType() &&
+        isValidImageSize();
+      
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Professional portfolio and service images
+    match /professionals/{professionalId}/{folder}/{fileName} {
+      // Public read access for published content
+      allow read: if true;
+      
+      // Only the professional owner can upload to their directory
+      allow write: if isProfessional() && 
+        isOwner(professionalId) &&
+        folder in ['portfolio', 'services', 'gallery'] &&
+        ((isValidImageType() && isValidImageSize()) ||
+         (isValidVideoType() && isValidVideoSize()));
+      
+      allow delete: if (isProfessional() && isOwner(professionalId)) || 
+        isAdmin();
+    }
+
+    // Professional drafts (private)
+    match /professionals/{professionalId}/drafts/{fileName} {
+      // Only the owner can read their drafts
+      allow read: if isProfessional() && isOwner(professionalId);
+      
+      allow write: if isProfessional() && 
+        isOwner(professionalId) &&
+        ((isValidImageType() && isValidImageSize()) ||
+         (isValidVideoType() && isValidVideoSize()));
+      
+      allow delete: if isProfessional() && isOwner(professionalId);
+    }
+
+    // Booking related files (receipts, before/after photos)
+    match /bookings/{bookingId}/{fileName} {
+      // Only related users can access booking files
+      allow read: if isAuthenticated() && (
+        // Check if user is customer or professional of this booking
+        firestore.get(/databases/(default)/documents/bookings/$(bookingId)).data.customerId == request.auth.uid ||
+        firestore.get(/databases/(default)/documents/bookings/$(bookingId)).data.professionalId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      allow write: if isAuthenticated() && (
+        firestore.get(/databases/(default)/documents/bookings/$(bookingId)).data.customerId == request.auth.uid ||
+        firestore.get(/databases/(default)/documents/bookings/$(bookingId)).data.professionalId == request.auth.uid
+      ) && isValidImageType() && isValidImageSize();
+      
+      allow delete: if isAuthenticated() && (
+        firestore.get(/databases/(default)/documents/bookings/$(bookingId)).data.customerId == request.auth.uid ||
+        firestore.get(/databases/(default)/documents/bookings/$(bookingId)).data.professionalId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Temporary uploads (for processing)
+    match /temp/{userId}/{fileName} {
+      allow read, write, delete: if isOwner(userId) &&
+        ((isValidImageType() && isValidImageSize()) ||
+         (isValidVideoType() && isValidVideoSize()));
+    }
+
+    // System/admin files
+    match /system/{allPaths=**} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

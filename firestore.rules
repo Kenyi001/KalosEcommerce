@@ -1,0 +1,166 @@
+// Firestore Security Rules for Kalos E-commerce
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.userType;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole(request.auth.uid) == 'admin';
+    }
+    
+    function isProfessional() {
+      return isAuthenticated() && getUserRole(request.auth.uid) == 'professional';
+    }
+    
+    function isClient() {
+      return isAuthenticated() && getUserRole(request.auth.uid) == 'client';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile during registration
+      allow create: if isOwner(userId) && 
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.userType in ['client', 'professional'] &&
+        request.resource.data.active == true &&
+        request.resource.data.verified == false;
+      
+      // Users can update their own profile (except role and admin fields)
+      allow update: if isOwner(userId) && 
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.userType == resource.data.userType &&
+        (!resource.data.keys().hasAny(['admin']) || 
+         request.resource.data.admin == resource.data.admin);
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+      
+      // User's cart subcollection
+      match /cart/{cartItemId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Services collection
+    match /services/{serviceId} {
+      // Anyone can read published/active services
+      allow read: if resource.data.active == true && 
+        get(/databases/$(database)/documents/users/$(resource.data.professionalId)).data.active == true;
+      
+      // Only the professional owner can create/update/delete their services
+      allow create: if isProfessional() && 
+        request.resource.data.professionalId == request.auth.uid &&
+        request.resource.data.priceBOB >= 1 &&
+        request.resource.data.durationMinutes >= 15;
+        
+      allow update: if isProfessional() && 
+        resource.data.professionalId == request.auth.uid &&
+        request.resource.data.professionalId == request.auth.uid &&
+        request.resource.data.priceBOB >= 1 &&
+        request.resource.data.durationMinutes >= 15;
+        
+      allow delete: if isProfessional() && 
+        resource.data.professionalId == request.auth.uid;
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      // Customers can read their own bookings
+      // Professionals can read bookings assigned to them
+      // Admins can read all bookings
+      allow read: if isAuthenticated() && 
+        (resource.data.customerId == request.auth.uid ||
+         resource.data.professionalId == request.auth.uid ||
+         isAdmin());
+      
+      // Only authenticated customers can create bookings
+      allow create: if isClient() &&
+        request.resource.data.customerId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.priceBOB >= 1 &&
+        // Verify the service exists and is active
+        exists(/databases/$(database)/documents/services/$(request.resource.data.serviceId)) &&
+        get(/databases/$(database)/documents/services/$(request.resource.data.serviceId)).data.active == true;
+      
+      // Professionals can update status of their bookings
+      // Customers can cancel their own bookings
+      allow update: if isAuthenticated() && 
+        ((isProfessional() && 
+          resource.data.professionalId == request.auth.uid &&
+          request.resource.data.status in ['accepted', 'confirmed', 'cancelled', 'completed']) ||
+         (isClient() && 
+          resource.data.customerId == request.auth.uid &&
+          request.resource.data.status == 'cancelled' &&
+          resource.data.status in ['pending', 'accepted']));
+      
+      // Only admins can delete bookings
+      allow delete: if isAdmin();
+    }
+
+    // Reviews collection
+    match /reviews/{reviewId} {
+      // Anyone can read published reviews
+      allow read: if resource.data.published == true;
+      
+      // Only customers who completed a booking can create reviews
+      allow create: if isClient() &&
+        request.resource.data.customerId == request.auth.uid &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5 &&
+        // Verify the booking exists and is completed
+        exists(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)) &&
+        get(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.status == 'completed' &&
+        get(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.customerId == request.auth.uid;
+      
+      // Customers can update their own unpublished reviews
+      allow update: if isClient() && 
+        resource.data.customerId == request.auth.uid &&
+        resource.data.published == false;
+      
+      // Customers can delete their own reviews, admins can delete any
+      allow delete: if (isClient() && resource.data.customerId == request.auth.uid) || 
+        isAdmin();
+    }
+
+    // Categories collection (read-only for users, write for admins)
+    match /categories/{categoryId} {
+      allow read: if resource.data.active == true;
+      allow write: if isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{userId} {
+      match /{notificationId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Public data (featured professionals, categories, etc.)
+    match /public/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny all other requests
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
