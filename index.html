@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalos E-commerce - Plataforma de Belleza</title>
+  <meta name="description" content="Plataforma digital para profesionales de belleza en Bolivia. Encuentra y reserva servicios de calidad.">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'brand': {
+              50: '#fef7ee',
+              100: '#fdebd3', 
+              200: '#fbd5a5',
+              300: '#f7b96d',
+              400: '#f39332',
+              500: '#f0770a',
+              600: '#e15d05',
+              700: '#ba4508',
+              800: '#94370e',
+              900: '#772f0f'
+            },
+            'navy': {
+              50: '#f0f6ff',
+              100: '#e0ecff',
+              200: '#c7ddff',
+              300: '#a5c7ff',
+              400: '#82a4ff',
+              500: '#6981ff',
+              600: '#5a5ff5',
+              700: '#4f46e5',
+              800: '#4338ca',
+              900: '#3730a3'
+            }
+          },
+          fontFamily: {
+            'fraunces': ['Fraunces', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    .line-clamp-1 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+    }
+    
+    .line-clamp-2 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Navigation Header -->
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <h1 class="text-2xl font-fraunces font-bold text-brand-600">Kalos</h1>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a href="#" class="border-brand-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" id="nav-home">
+              Inicio
+            </a>
+            <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" id="nav-professionals">
+              Profesionales
+            </a>
+            <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" id="nav-services">
+              Servicios
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="bg-brand text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-600 transition-colors" id="login-btn">
+            Iniciar Sesión
+          </button>
+          <button class="bg-navy-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-navy-700 transition-colors" id="register-btn">
+            Registrarse
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main id="main-content" class="min-h-screen">
+    <!-- Home Page Content -->
+    <div id="home-page">
+      <!-- Hero Section -->
+      <div class="bg-gradient-to-r from-brand-50 to-navy-50">
+        <div class="max-w-7xl mx-auto py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
+          <div class="text-center">
+            <h1 class="text-4xl font-fraunces font-bold text-gray-900 sm:text-5xl lg:text-6xl">
+              Belleza al alcance de
+              <span class="text-brand-600">tus manos</span>
+            </h1>
+            <p class="mt-6 max-w-2xl mx-auto text-xl text-gray-600">
+              Conectamos a los mejores profesionales de belleza con clientes exigentes. 
+              Encuentra y reserva servicios de calidad en toda Bolivia.
+            </p>
+            <div class="mt-10 flex justify-center space-x-4">
+              <button class="bg-brand text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-brand-600 transition-colors" id="find-professionals-btn">
+                Buscar Profesionales
+              </button>
+              <button class="border-2 border-navy-600 text-navy-600 px-8 py-3 rounded-lg text-lg font-medium hover:bg-navy-50 transition-colors" id="join-professionals-btn">
+                Únete como Profesional
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center">
+            <h2 class="text-3xl font-fraunces font-bold text-gray-900">
+              ¿Por qué elegir Kalos?
+            </h2>
+            <p class="mt-4 text-xl text-gray-600">
+              La plataforma más confiable para servicios de belleza
+            </p>
+          </div>
+
+          <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+              <div class="flex justify-center">
+                <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center">
+                  <svg class="w-8 h-8 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+              </div>
+              <h3 class="mt-4 text-xl font-semibold text-gray-900">Profesionales Verificados</h3>
+              <p class="mt-2 text-gray-600">
+                Todos nuestros profesionales pasan por un proceso de verificación riguroso
+              </p>
+            </div>
+
+            <div class="text-center">
+              <div class="flex justify-center">
+                <div class="w-16 h-16 bg-navy-100 rounded-full flex items-center justify-center">
+                  <svg class="w-8 h-8 text-navy-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+              </div>
+              <h3 class="mt-4 text-xl font-semibold text-gray-900">Reseñas Reales</h3>
+              <p class="mt-2 text-gray-600">
+                Lee reseñas auténticas de clientes reales para tomar la mejor decisión
+              </p>
+            </div>
+
+            <div class="text-center">
+              <div class="flex justify-center">
+                <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center">
+                  <svg class="w-8 h-8 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                </div>
+              </div>
+              <h3 class="mt-4 text-xl font-semibold text-gray-900">Servicio a Domicilio</h3>
+              <p class="mt-2 text-gray-600">
+                Muchos profesionales ofrecen servicios en la comodidad de tu hogar
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Section -->
+      <div class="bg-brand-600">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+          <h2 class="text-3xl font-fraunces font-bold tracking-tight text-white sm:text-4xl">
+            <span class="block">¿Listo para comenzar?</span>
+            <span class="block text-brand-200">Encuentra tu profesional ideal hoy.</span>
+          </h2>
+          <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+            <div class="inline-flex rounded-md shadow">
+              <button class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-brand-600 bg-white hover:bg-brand-50" id="get-started-btn">
+                Empezar ahora
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professionals Page (Initially Hidden) -->
+    <div id="professionals-page" class="hidden">
+      <!-- Will be populated by ProfessionalsListPage component -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h3 class="text-white text-lg font-fraunces font-semibold">Kalos</h3>
+        <p class="mt-2 text-gray-400">La plataforma líder en servicios de belleza en Bolivia</p>
+        <p class="mt-4 text-gray-500 text-sm">© 2024 Kalos E-commerce. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase and App Scripts -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

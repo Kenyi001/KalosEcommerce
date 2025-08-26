@@ -1,44 +1,40 @@
-# Kalos E-commerce - Servicios de Belleza a Domicilio
+# 🌟 Kalos E-commerce Platform
 
-**Marketplace de servicios de belleza a domicilio desarrollado con Vite + Tailwind + Firebase**
+**Marketplace de servicios de belleza a domicilio en Bolivia**
 
-## 🚀 Características Principales
+## � Descripción del Proyecto
 
-### Para Clientes
-- Explorar profesionales por categorías de servicios
-- Ver perfiles detallados con portafolios
-- Reservar servicios a domicilio
-- Calificar y reseñar profesionales
-- Gestionar reservas y historial
+Kalos es una plataforma digital que conecta profesionales de belleza con clientes que buscan servicios a domicilio. Desarrollada específicamente para el mercado boliviano, facilitando el acceso a servicios de calidad desde la comodidad del hogar.
 
-### Para Profesionales
-- Crear y personalizar perfil profesional
-- Gestionar servicios y precios
-- Calendario de disponibilidad
-- Portafolio de trabajos
-- Dashboard con estadísticas
+### 🚀 Características Principales
+
+- **🔐 Sistema de Autenticación**: Registro y login seguro con Firebase Auth
+- **👥 Gestión de Profesionales**: Perfiles verificados con servicios y portfolios
+- **📅 Sistema de Reservas**: Booking inteligente con calendario y pagos
+- **⭐ Reviews y Ratings**: Sistema de calificaciones y reseñas
+- **💬 Comunicación**: Chat y notificaciones en tiempo real
+- **📱 Responsive Design**: Optimizado para móviles y desktop
+- **💳 Pagos Locales**: Integración con QR y transferencias bancarias
 
 ## 🛠️ Stack Tecnológico
 
 ### Frontend
-- **Vite**: Build tool y dev server ultra-rápido
-- **Tailwind CSS**: Framework CSS utility-first
-- **Vanilla JavaScript (ES6+)**: Lógica moderna sin frameworks
-- **PostCSS**: Procesamiento de CSS
+- **Vite** - Build tool y dev server
+- **Vanilla JavaScript** - Sin frameworks, código nativo
+- **Tailwind CSS** - Framework de utilidades CSS
+- **Design System** - Componentes reutilizables personalizados
 
-### Backend (Firebase)
-- **Firebase Authentication**: Gestión de usuarios y autenticación
-- **Firestore**: Base de datos NoSQL en tiempo real
-- **Cloud Storage**: Almacenamiento de imágenes y archivos
-- **Firebase Hosting**: Hosting de la aplicación web
-- **Firebase Emulator Suite**: Desarrollo y testing local
+### Backend & Database
+- **Firebase Authentication** - Gestión de usuarios
+- **Firestore Database** - Base de datos NoSQL
+- **Firebase Storage** - Almacenamiento de imágenes
+- **Firebase Hosting** - Deploy y hosting
 
 ### Herramientas de Desarrollo
-- **ESLint**: Linting de código JavaScript
-- **Prettier**: Formateo automático de código
-- **Vite Bundle Analyzer**: Análisis de bundles
-- **Vitest**: Testing unitario
-- **Playwright**: Testing end-to-end
+- **ESLint + Prettier** - Linting y formateo
+- **Vitest** - Testing framework
+- **PostCSS** - Procesamiento CSS
+- **Git Hooks** - Pre-commit validation
 
 ## 📁 Estructura del Proyecto
 
