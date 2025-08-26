@@ -1,5 +1,5 @@
 // Main application entry point for Kalos E-commerce
-import './styles/main.css';
+import './styles/tailwind.css';
 import { initializeApp } from './config/firebase-config.js';
 import { authService } from './services/auth.js';
 import { protectedRouter } from './utils/ProtectedRouter.js';
