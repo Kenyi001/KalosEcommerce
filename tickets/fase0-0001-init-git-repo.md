@@ -1,64 +1,80 @@
-# Ticket Fase 0-0001: Inicialización de Repositorio Git
+# Ticket #0001: Inicializar Repositorio Git - Setup Inicial
+
+**Estado:** 📋 Planificado  
+**Prioridad:** Alta  
+**Estimación:** 2 horas  
+**Fase:** 0 - Setup y Configuración  
+**Asignado a:** DevOps Team  
+
+---
 
 ## 📋 Descripción
-Configurar repositorio Git con estructura inicial, branches, hooks y configuración para desarrollo colaborativo del proyecto Kalos E-commerce.
+
+Inicializar el repositorio Git para el proyecto Kalos E-commerce con la estructura base, configuración inicial y preparación del entorno de desarrollo.
 
 ## 🎯 Objetivos
-- Repositorio Git inicializado con estructura correcta
-- Configuración de branches (main, develop, feature/*)
-- Git hooks para validación de código
-- .gitignore optimizado para proyecto Vite + Firebase
-- README inicial y documentación base
 
-## 📊 Criterios de Aceptación
+### Funcionales
+- Repositorio Git configurado con estructura clara
+- Branch strategy definida (main/develop/feature)
+- .gitignore configurado para el stack tecnológico
+- README inicial con información del proyecto
+- Configuración de archivos base del proyecto
 
-### ✅ Inicialización del Repositorio
-- [ ] Repositorio Git inicializado (`git init`)
-- [ ] Commit inicial con estructura base
-- [ ] Remote origin configurado (GitHub)
-- [ ] Branch main como default
-- [ ] Branch develop para integración
+### Técnicos
+- Git repository inicializado
+- Estructura de carpetas establecida
+- Variables de entorno template creado
+- Documentación básica en place
+- Branch protection rules configuradas
 
-### ✅ Configuración de .gitignore
-- [ ] Archivos de entorno (.env.local, .env.production)
-- [ ] Dependencies (node_modules/)
-- [ ] Build artifacts (dist/, .vite/)
-- [ ] Firebase cache (.firebase/)
-- [ ] IDE files (.vscode/, .idea/)
-- [ ] OS files (.DS_Store, Thumbs.db)
+## 🔧 Tareas Técnicas
 
-### ✅ Git Hooks (Opcional)
-- [ ] Pre-commit hook para linting
-- [ ] Pre-push hook para tests
-- [ ] Commit message validation
-- [ ] Husky configurado si se requiere
+### Setup Inicial del Repositorio
+- [x] Inicializar repositorio Git
+- [x] Crear estructura de carpetas base
+- [x] Configurar .gitignore apropiado
+- [x] Crear README.md inicial
+- [x] Setup de branches (main/develop)
 
-### ✅ Branching Strategy
-- [ ] main: Código en producción
-- [ ] develop: Integración de features
-- [ ] feature/*: Desarrollo de funcionalidades
-- [ ] hotfix/*: Correcciones urgentes
+### Configuración de Archivos Base
+- [x] Crear .env.example con variables necesarias
+- [x] Configurar .gitignore para Node.js/Vite/Firebase
+- [x] Crear package.json con dependencias base
+- [x] Setup de archivos de configuración (vite.config.js, etc.)
 
-## 🔧 Implementación
+### Documentación Inicial
+- [x] README con información del proyecto
+- [x] Estructura de carpetas documentada
+- [x] Instrucciones de setup inicial
+- [x] Guías de contribución básicas
 
-### Git Configuration
-```bash
-# Inicializar repositorio
-git init
+## 📁 Estructura del Repositorio
 
-# Configurar usuario (global o local)
-git config user.name "Tu Nombre"
-git config user.email "tu@email.com"
-
-# Configurar editor y merge tool
-git config core.editor "code --wait"
-git config merge.tool vscode
-
-# Configurar line endings para Windows
-git config core.autocrlf true
+```
+kalos-ecommerce/
+├── .github/
+│   └── workflows/           # GitHub Actions
+├── docs/
+│   ├── plan.md             # Plan de desarrollo
+│   └── specs/              # Especificaciones técnicas
+├── tickets/                # Sistema de tickets
+├── src/
+│   ├── components/         # Componentes Vue/React
+│   ├── config/            # Configuración
+│   ├── services/          # Servicios y APIs
+│   ├── utils/             # Utilidades
+│   └── styles/            # Estilos CSS
+├── public/                # Assets estáticos
+├── .env.example           # Template de variables
+├── .gitignore            # Archivos ignorados
+├── package.json          # Dependencias del proyecto
+├── vite.config.js        # Configuración de Vite
+└── README.md             # Documentación principal
 ```
 
-### .gitignore Completo
+## 🔧 Configuración de .gitignore
+
 ```gitignore
 # Dependencies
 node_modules/
@@ -67,23 +83,18 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
-.env.local
-.env.production
-.env.development
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Build outputs
 dist/
 build/
 .vite/
-.cache/
 
-# Firebase
-.firebase/
-firebase-debug.log
-.firebaserc
-
-# IDE and Editor
+# Editor directories and files
 .vscode/
 .idea/
 *.swp
@@ -99,6 +110,11 @@ firebase-debug.log
 ehthumbs.db
 Thumbs.db
 
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
 # Logs
 logs/
 *.log
@@ -111,173 +127,116 @@ pids/
 
 # Coverage directory used by tools like istanbul
 coverage/
-*.lcov
 
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.parcel-cache/
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
+# Temporary folders
+tmp/
+temp/
 ```
 
-### Commit Message Convention
+## 📝 Branch Strategy
+
+### Ramas Principales
+- **main**: Rama de producción, siempre deployable
+- **develop**: Rama de desarrollo, integración de features
+- **feature/***: Ramas de funcionalidades específicas
+- **hotfix/***: Ramas para fixes urgentes en producción
+
+### Flujo de Trabajo
+1. Crear feature branch desde develop
+2. Desarrollar funcionalidad
+3. Pull Request a develop
+4. Code review y testing
+5. Merge a develop
+6. Deploy a staging para QA
+7. Merge develop a main para producción
+
+## 🧪 Criterios de Aceptación
+
+### Repositorio
+- [x] Git repository inicializado correctamente
+- [x] Estructura de carpetas creada
+- [x] .gitignore configurado apropiadamente
+- [x] README.md con información completa
+- [x] Branch strategy documentada
+
+### Configuración
+- [x] .env.example con todas las variables necesarias
+- [x] package.json con scripts básicos
+- [x] Configuración de Vite funcional
+- [x] Archivos de configuración en place
+
+### Documentación
+- [x] README con instrucciones claras de setup
+- [x] Documentación de estructura del proyecto
+- [x] Guías de contribución básicas
+- [x] Plan de desarrollo referenciado
+
+## 📝 Notas de Implementación
+
+### Comandos Git Iniciales
 ```bash
-# Formato: tipo(scope): descripción
-# Tipos: feat, fix, docs, style, refactor, test, chore
+# Inicializar repositorio
+git init
+git branch -M main
 
-# Ejemplos:
-feat(auth): add login functionality
-fix(booking): resolve date validation bug
-docs(readme): update installation instructions
-style(ui): format button components
-refactor(services): optimize API calls
-test(auth): add unit tests for login
-chore(deps): update dependencies
-```
+# Configurar usuario (si es necesario)
+git config user.name "Developer Name"
+git config user.email "developer@email.com"
 
-### Branch Naming Convention
-```bash
-# Features
-feature/auth-system
-feature/professional-management
-feature/booking-flow
+# Crear commit inicial
+git add .
+git commit -m "feat: initial project setup with base structure"
 
-# Bug fixes
-fix/login-validation-error
-fix/booking-date-bug
-
-# Hotfixes
-hotfix/critical-security-patch
-hotfix/payment-gateway-fix
-
-# Documentation
-docs/api-documentation
-docs/setup-guide
-```
-
-## 🧪 Testing
-
-### Validation Checklist
-- [ ] Repository initializes correctly
-- [ ] .gitignore excludes proper files
-- [ ] Commits follow message convention
-- [ ] Branches can be created and merged
-- [ ] Remote repository syncs properly
-
-### Manual Testing
-```bash
-# Test repository
-git status
-git log --oneline
-git remote -v
-
-# Test .gitignore
-echo "test" > .env.local
-git status  # Should not show .env.local
-
-# Test branching
-git checkout -b feature/test-branch
-git checkout main
-git branch -d feature/test-branch
-```
-
-## 🚀 Deployment
-
-### GitHub Repository Setup
-1. Create repository on GitHub
-2. Configure repository settings
-3. Set up branch protection rules
-4. Configure collaborators and permissions
-
-### Repository Settings
-```bash
-# Add remote origin
-git remote add origin https://github.com/usuario/kalos-ecommerce.git
-
-# Push initial commit
-git push -u origin main
-
-# Create and push develop branch
+# Crear rama develop
 git checkout -b develop
 git push -u origin develop
+git push -u origin main
 ```
 
-## 📦 Dependencies
-- Git 2.30+
-- GitHub account
-- Opcional: Husky para git hooks
+### Variables de Entorno Base
+```bash
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 
-## 🔗 Relaciones
-- **Prerrequisito para**: Todos los demás tickets
-- **Relacionado con**: fase0-0034-documentation-suite
-- **Base para**: Desarrollo colaborativo
+# Environment
+VITE_ENVIRONMENT=development
 
-## 📝 Notas Adicionales
+# Feature Flags
+VITE_ENABLE_EMULATORS=true
+VITE_ENABLE_ANALYTICS=false
+```
 
-### Best Practices
-- Commits pequeños y frecuentes
-- Mensajes descriptivos y claros
-- No hacer commit de archivos generados
-- Usar branches para features
-- Review code antes de merge
+### Scripts de Package.json
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "emulators": "firebase emulators:start",
+    "deploy": "npm run build && firebase deploy"
+  }
+}
+```
 
-### Security Considerations
-- No commitear credenciales
-- Usar .env para configuración sensible
-- Configurar branch protection en main
-- Revisar permisos de repositorio
+## 🔗 Dependencias
+
+### Ninguna (es el primer ticket)
+
+## 🚀 Criterios de Deploy
+
+- [x] Repositorio creado en GitHub/GitLab
+- [x] Estructura base commitada
+- [x] Branches configuradas
+- [x] Team tiene acceso al repositorio
+- [x] README con instrucciones funcionales
 
 ---
 
-**Estado**: ✅ Completado  
-**Prioridad**: Crítica  
-**Estimación**: 1 hora  
-**Asignado**: DevOps/Developer  
-
-**Sprint**: Sprint 0 - Foundation  
-**Deadline**: 26 agosto 2025
+**Tags:** `setup` `git` `infrastructure` `documentation`  
+**Relacionado:** #0002 (Docker Setup)
