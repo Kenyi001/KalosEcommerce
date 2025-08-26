@@ -3,6 +3,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   root: '.',
+  appType: 'spa',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
@@ -10,10 +11,16 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    historyApiFallback: true,
   },
   build: {
     target: 'es2015',
     outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+      },
+    },
   },
   test: {
     globals: true,
