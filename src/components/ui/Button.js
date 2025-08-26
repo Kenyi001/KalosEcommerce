@@ -17,9 +17,9 @@ export class Button {
 
   getVariantClasses() {
     const variants = {
-      primary: 'bg-brand text-white hover:bg-brand-hover focus:bg-brand-pressed border-transparent',
-      secondary: 'bg-navy text-white hover:bg-navy-hover focus:bg-navy-pressed border-transparent',
-      outline: 'bg-transparent text-brand border-brand hover:bg-brand-subtle focus:bg-brand-subtle',
+      primary: 'bg-brand text-white hover:bg-brand-600 focus:bg-brand-700 border-transparent',
+      secondary: 'bg-navy text-white hover:bg-navy-700 focus:bg-navy-800 border-transparent',
+      outline: 'bg-transparent text-brand border-brand hover:bg-brand-50 focus:bg-brand-100',
       ghost: 'bg-transparent text-navy hover:bg-gray-50 focus:bg-gray-100 border-transparent'
     };
     return variants[this.config.variant] || variants.primary;
