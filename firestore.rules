@@ -1,0 +1,200 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'admin';
+    }
+    
+    function isProfessional() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'professional';
+    }
+    
+    function isClient() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'client';
+    }
+    
+    function isActiveVerifiedProfessional(professionalId) {
+      let professional = get(/databases/$(database)/documents/professionals/$(professionalId)).data;
+      return professional.status == 'active' && 
+             professional.verification.status == 'approved';
+    }
+
+    // Users collection - Basic user profiles
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Professionals collection - Professional profiles
+    match /professionals/{professionalId} {
+      // Professionals can read/write their own profile
+      allow read, write: if isOwner(professionalId);
+      
+      // Admins can read/write all professional profiles (for verification)
+      allow read, write: if isAdmin();
+      
+      // Public read access for active verified professionals (limited fields)
+      allow read: if resource.data.status == 'active' && 
+                     resource.data.verification.status == 'approved';
+      
+      // Allow creation by authenticated users when registering as professional
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == professionalId &&
+                       request.data.uid == request.auth.uid &&
+                       request.data.status == 'inactive' &&
+                       request.data.verification.status == 'pending';
+    }
+
+    // Services collection - Services offered by professionals
+    match /services/{serviceId} {
+      // Professional can manage their own services
+      allow read, write: if isAuthenticated() && 
+                            resource.data.professionalId == request.auth.uid;
+      
+      // Allow creation by professionals
+      allow create: if isProfessional() && 
+                       request.data.professionalId == request.auth.uid &&
+                       isActiveVerifiedProfessional(request.auth.uid);
+      
+      // Public read access for active services of verified professionals
+      allow read: if resource.data.status == 'active' &&
+                     isActiveVerifiedProfessional(resource.data.professionalId);
+      
+      // Admins can read/write all services
+      allow read, write: if isAdmin();
+    }
+
+    // Portfolio collection - Professional portfolio items
+    match /portfolio/{itemId} {
+      // Professional can manage their own portfolio
+      allow read, write: if isAuthenticated() && 
+                            resource.data.professionalId == request.auth.uid;
+      
+      // Allow creation by professionals
+      allow create: if isProfessional() && 
+                       request.data.professionalId == request.auth.uid &&
+                       isActiveVerifiedProfessional(request.auth.uid);
+      
+      // Public read access for public portfolio items of verified professionals
+      allow read: if resource.data.isPublic == true &&
+                     isActiveVerifiedProfessional(resource.data.professionalId);
+      
+      // Admins can read/write all portfolio items
+      allow read, write: if isAdmin();
+    }
+
+    // Bookings collection - Service bookings (for future use)
+    match /bookings/{bookingId} {
+      // Clients can read/write their own bookings
+      allow read, write: if isAuthenticated() && 
+                            resource.data.clientId == request.auth.uid;
+      
+      // Professionals can read/write bookings for their services
+      allow read, write: if isAuthenticated() && 
+                            resource.data.professionalId == request.auth.uid;
+      
+      // Allow creation by authenticated users
+      allow create: if isAuthenticated() && 
+                       (request.data.clientId == request.auth.uid ||
+                        request.data.professionalId == request.auth.uid);
+      
+      // Admins can read/write all bookings
+      allow read, write: if isAdmin();
+    }
+
+    // Reviews collection - Service and professional reviews
+    match /reviews/{reviewId} {
+      // Users can read all reviews
+      allow read: if true;
+      
+      // Only clients who booked the service can write reviews
+      allow create: if isAuthenticated() && 
+                       request.data.clientId == request.auth.uid &&
+                       // TODO: Add validation that user actually booked the service
+                       request.data.rating >= 1 && request.data.rating <= 5;
+      
+      // Users can edit their own reviews (within time limit)
+      allow update: if isAuthenticated() && 
+                       resource.data.clientId == request.auth.uid &&
+                       request.data.clientId == request.auth.uid;
+      
+      // Admins can moderate all reviews
+      allow read, write, delete: if isAdmin();
+    }
+
+    // Categories collection - Service categories (read-only for users)
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Notifications collection - User notifications
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // System can create notifications
+      allow create: if isAuthenticated();
+      
+      // Users can update notification status (mark as read)
+      allow update: if isAuthenticated() && 
+                       resource.data.userId == request.auth.uid &&
+                       request.data.userId == request.auth.uid;
+      
+      // Admins can manage all notifications
+      allow read, write: if isAdmin();
+    }
+
+    // Messages collection - Chat messages (for future use)
+    match /conversations/{conversationId} {
+      // Participants can read/write messages in their conversations
+      allow read, write: if isAuthenticated() && 
+                            request.auth.uid in resource.data.participants;
+      
+      // Allow creation if user is one of the participants
+      allow create: if isAuthenticated() && 
+                       request.auth.uid in request.data.participants;
+    }
+
+    match /conversations/{conversationId}/messages/{messageId} {
+      // Conversation participants can read messages
+      allow read: if isAuthenticated() && 
+                     request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+      
+      // Users can send messages in conversations they participate in
+      allow create: if isAuthenticated() && 
+                       request.data.senderId == request.auth.uid &&
+                       request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    // Analytics collection - System analytics (admin only)
+    match /analytics/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // System configuration (admin only)
+    match /config/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny all other requests
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
