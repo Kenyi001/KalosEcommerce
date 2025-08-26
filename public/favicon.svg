@@ -1,0 +1,7 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Kalos logo - stylized K with beauty elements -->
+  <rect width="32" height="32" rx="6" fill="#F74F4E"/>
+  <path d="M8 24V8h3v6.5l6-6.5h4l-6 6 6 10h-4l-4-6.5-2 2V24H8z" fill="white"/>
+  <circle cx="24" cy="12" r="2" fill="#FCBE3C" opacity="0.8"/>
+  <circle cx="22" cy="20" r="1.5" fill="#FCBE3C" opacity="0.6"/>
+</svg>
