@@ -2,8 +2,10 @@
  * NotFound Page (404) - Error page for invalid routes
  */
 
+import { renderWithLayout, initializeLayout } from '../components/Layout.js';
+
 export function renderNotFoundPage() {
-  return `
+  const content = `
     <div class="min-h-screen flex items-center justify-center bg-gray-50">
       <div class="text-center max-w-md mx-auto px-4">
         <div class="mb-8">
@@ -19,15 +21,15 @@ export function renderNotFoundPage() {
         <div class="space-y-4">
           <button 
             data-router-link 
-            href="/"
-            class="w-full bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+            data-href="/"
+            class="w-full bg-brand hover:bg-brand-hover text-kalos-white px-6 py-3 rounded-lg font-semibold transition-colors">
             Volver al Inicio
           </button>
           
           <button 
             data-router-link 
-            href="/buscar"
-            class="w-full border border-brand text-brand hover:bg-brand hover:text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+            data-href="/buscar"
+            class="w-full border border-brand text-brand hover:bg-brand hover:text-kalos-white px-6 py-3 rounded-lg font-semibold transition-colors">
             Buscar Profesionales
           </button>
         </div>
@@ -37,7 +39,7 @@ export function renderNotFoundPage() {
             ¿Necesitas ayuda? 
             <button 
               data-router-link 
-              href="/contacto"
+              data-href="/contacto"
               class="text-brand hover:underline">
               Contáctanos
             </button>
@@ -46,6 +48,12 @@ export function renderNotFoundPage() {
       </div>
     </div>
   `;
+  
+  return renderWithLayout(content);
+}
+
+export function initializeNotFoundPage() {
+  initializeLayout();
 }
 
 export default renderNotFoundPage;

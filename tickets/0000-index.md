@@ -2,19 +2,19 @@
 
 ### Estado General
 - **Total tickets:** 25
-- **Completados:** 4 ✅
-- **En progreso:** 1 🔄  
+- **Completados:** 5 ✅
+- **En progreso:** 0 🔄  
 - **Planificados:** 20 📋
 
 ---
 
-### 🔨 Fase 0: Setup y Configuración
+### 🔨 Fase 0: Setup y Configuración (5 tickets) ✅ **COMPLETADA**
 | Ticket | Título | Estado | Descripción |
 |--------|--------|--------|-------------|
 | [0000](fase0-0000-scaffold-setup.md) | Setup de Scaffold y Estructura Base | ✅ Completado | Scaffold completo con Vite + Tailwind + Firebase |
 | [0001](fase0-0001-init-git-repo.md) | Inicializar repositorio Git | ✅ Completado | Setup inicial del repositorio con estructura base |
 | [0002](fase0-0002-docker-setup.md) | Configuración Docker | ✅ Completado | Configuración de entorno de desarrollo con Docker |
-| [0003](fase0-0003-routing-system.md) | Sistema de Routing SPA | 🔄 En progreso | Router completo con protección de rutas y navigation |
+| [0003](fase0-0003-routing-system.md) | Sistema de Routing SPA | ✅ Completado | Router completo con protección de rutas y navigation |
 | [0034](fase0-0034-documentation-suite.md) | Documentation Suite | ✅ Completado | Design Guide, Component Docs, Firebase Spec completos |
 
 ### 🔐 Fase 1: Sistema de Autenticación

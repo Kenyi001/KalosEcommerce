@@ -1,7 +1,9 @@
 /**
  * Simple SPA Router for Kalos E-commerce
- * Handles client-side routing with History API
+ * Handles client-side routing with History API and authentication guards
  */
+
+import { authState } from './auth-state.js';
 
 class Router {
   constructor() {
@@ -18,8 +20,7 @@ class Router {
     const route = {
       path: this.normalizePath(path),
       handler,
-      requiresAuth: options.requiresAuth || false,
-      allowedRoles: options.allowedRoles || [],
+      guards: options.guards || [],
       title: options.title || 'Kalos E-commerce',
       meta: options.meta || {}
     };
@@ -75,6 +76,23 @@ class Router {
       const result = await middleware(route, targetPath);
       if (result === false) {
         return; // Middleware blocked navigation
+      }
+    }
+
+    // Run route guards
+    if (route.guards && route.guards.length > 0) {
+      for (const guard of route.guards) {
+        const result = await guard(targetPath, route);
+        if (result !== true) {
+          // Guard returned a redirect path
+          if (typeof result === 'string') {
+            this.navigate(result, true);
+            return;
+          } else {
+            // Guard blocked navigation
+            return;
+          }
+        }
       }
     }
 
@@ -138,16 +156,16 @@ class Router {
           <div class="min-h-screen flex items-center justify-center bg-gray-50">
             <div class="text-center">
               <h1 class="text-6xl font-bold text-gray-900">404</h1>
-              <p class="mt-2 text-lg text-gray-600">Página no encontrada</p>
-              <button onclick="window.router.navigate('/')" 
-                      class="mt-4 px-4 py-2 bg-brand text-white rounded">
+              <p class="mt-2 text-lg text-gray-600">Pï¿½gina no encontrada</p>
+              <button data-router-link data-href="/" 
+                      class="mt-4 px-4 py-2 bg-brand text-kalos-white rounded">
                 Volver al inicio
               </button>
             </div>
           </div>
         `;
       },
-      title: '404 - Página no encontrada'
+      title: '404 - Pï¿½gina no encontrada'
     };
 
     document.title = notFoundRoute.title;
@@ -163,8 +181,8 @@ class Router {
         <div class="text-center">
           <h1 class="text-xl font-bold text-red-600">Error</h1>
           <p class="mt-2 text-gray-600">Ha ocurrido un error inesperado</p>
-          <button onclick="window.router.navigate('/')" 
-                  class="mt-4 px-4 py-2 bg-brand text-white rounded">
+          <button data-router-link data-href="/" 
+                  class="mt-4 px-4 py-2 bg-brand text-kalos-white rounded">
             Volver al inicio
           </button>
         </div>
@@ -193,9 +211,13 @@ class Router {
 
     // Handle link clicks
     document.addEventListener('click', (event) => {
-      if (event.target.matches('[data-router-link]')) {
+      // Check if the clicked element or its parent has data-router-link
+      const linkElement = event.target.closest('[data-router-link]');
+      if (linkElement) {
         event.preventDefault();
-        const href = event.target.getAttribute('href') || event.target.dataset.href;
+        const href = linkElement.getAttribute('href') || 
+                     linkElement.getAttribute('data-href') || 
+                     linkElement.dataset.href;
         if (href) {
           this.navigate(href);
         }
@@ -211,30 +233,43 @@ class Router {
   }
 }
 
-// Authentication middleware
-export const authMiddleware = (route, path) => {
-  if (route.requiresAuth) {
-    // TODO: Check if user is authenticated
-    const isAuthenticated = false; // Replace with actual auth check
-    
-    if (!isAuthenticated) {
-      window.router.navigate('/auth/login');
-      return false;
-    }
-
-    // TODO: Check user roles
-    if (route.allowedRoles.length > 0) {
-      const userRole = 'customer'; // Replace with actual user role
-      if (!route.allowedRoles.includes(userRole)) {
-        window.router.navigate('/403');
-        return false;
-      }
+/**
+ * Navigate to a path programmatically
+ * @param {string} path - Target path
+ * @param {boolean} replace - Whether to replace current history entry
+ */
+export function navigateTo(path, replace = false) {
+  if (window.router) {
+    window.router.navigate(path, replace);
+  } else {
+    // Fallback for direct navigation
+    if (replace) {
+      window.location.replace(path);
+    } else {
+      window.location.href = path;
     }
   }
-  return true;
-};
+}
 
-// Create global router instance
-window.router = new Router();
+/**
+ * Get current route path
+ * @returns {string} Current path
+ */
+export function getCurrentPath() {
+  return window.router ? window.router.getCurrentPath() : window.location.pathname;
+}
 
-export default Router;
+/**
+ * Get current route object
+ * @returns {Object|null} Current route
+ */
+export function getCurrentRoute() {
+  return window.router ? window.router.currentRoute : null;
+}
+
+// Create and export global router instance
+export const router = new Router();
+window.router = router;
+
+export { Router };
+export default router;

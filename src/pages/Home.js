@@ -2,9 +2,11 @@
  * Home Page - Landing page for Kalos E-commerce
  */
 
+import { renderWithLayout, initializeLayout } from '../components/Layout.js';
+
 export function renderHomePage() {
-  return `
-    <div class="min-h-screen bg-kalos-white">
+  const content = `
+    <div class="bg-kalos-white">
       <!-- Hero Section -->
       <section class="bg-gradient-to-br from-brand to-deep-coral text-white py-20">
         <div class="max-w-6xl mx-auto px-4 text-center">
@@ -14,17 +16,17 @@ export function renderHomePage() {
           <p class="text-xl md:text-2xl mb-8 text-white/90">
             Conectamos profesionales de belleza con clientes en Bolivia
           </p>
-          <div class="space-x-4">
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               data-router-link 
-              href="/buscar"
-              class="bg-white text-brand px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              data-href="/buscar"
+              class="bg-kalos-white text-brand px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               Buscar Profesionales
             </button>
             <button 
               data-router-link 
-              href="/auth/signup?role=professional"
-              class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
+              data-href="/auth/signup?role=professional"
+              class="border-2 border-kalos-white text-kalos-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
               Soy Profesional
             </button>
           </div>
@@ -72,14 +74,20 @@ export function renderHomePage() {
           </p>
           <button 
             data-router-link 
-            href="/auth/signup"
-            class="bg-brand hover:bg-brand-hover text-white px-8 py-4 rounded-lg font-semibold transition-colors">
+            data-href="/auth/signup"
+            class="bg-brand hover:bg-brand-hover text-kalos-white px-8 py-4 rounded-lg font-semibold transition-colors">
             Crear Cuenta Gratuita
           </button>
         </div>
       </section>
     </div>
   `;
+  
+  return renderWithLayout(content);
+}
+
+export function initializeHomePage() {
+  initializeLayout();
 }
 
 export default renderHomePage;

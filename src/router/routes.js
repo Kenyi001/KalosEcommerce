@@ -3,12 +3,16 @@
  * Defines all routes and their handlers
  */
 
-import { renderHomePage } from '../pages/Home.js';
-import { renderNotFoundPage } from '../pages/NotFound.js';
+import { renderHomePage, initializeHomePage } from '../pages/Home.js';
+import { renderNotFoundPage, initializeNotFoundPage } from '../pages/NotFound.js';
 import { renderLoadingPage } from '../pages/Loading.js';
+import { renderLoginPage, initializeLoginPage } from '../pages/Auth/Login.js';
+import { renderRegisterPage, initializeRegisterPage } from '../pages/Auth/Register.js';
+import { renderForgotPasswordPage, initializeForgotPasswordPage } from '../pages/Auth/ForgotPassword.js';
+import { renderAccountPage, initializeAccountPage } from '../pages/Account.js';
+import { requireAuth, requireGuest, requireCustomer, requireProfessional, requireCustomerOrProfessional } from '../utils/auth-guards.js';
 
 // Import route handlers (will be implemented in later phases)
-// import { renderAuthPage } from '../pages/Auth.js';
 // import { renderSearchPage } from '../pages/Search.js';
 // import { renderProfessionalProfile } from '../pages/ProfessionalProfile.js';
 
@@ -21,6 +25,7 @@ export const routes = [
     path: '/',
     handler: () => {
       document.getElementById('app').innerHTML = renderHomePage();
+      initializeHomePage();
     },
     title: 'Kalos E-commerce - Belleza a Domicilio',
     meta: { description: 'Marketplace de servicios de belleza a domicilio en Bolivia' }
@@ -67,43 +72,35 @@ export const routes = [
     title: 'Perfil Profesional - Kalos'
   },
 
-  // Authentication routes
+  // Authentication routes (guest only)
   {
     path: '/auth/login',
     handler: () => {
-      // TODO: Implement in Phase 1
-      document.getElementById('app').innerHTML = `
-        <div class="min-h-screen flex items-center justify-center bg-gray-50">
-          <div class="text-center">
-            <h1 class="text-2xl font-bold text-navy mb-4">Iniciar Sesión</h1>
-            <p class="text-gray-600 mb-4">Próximamente en Fase 1</p>
-            <button data-router-link href="/" class="bg-brand text-white px-4 py-2 rounded">
-              Volver al inicio
-            </button>
-          </div>
-        </div>
-      `;
+      document.getElementById('app').innerHTML = renderLoginPage();
+      initializeLoginPage();
     },
+    guards: [requireGuest],
     title: 'Iniciar Sesión - Kalos'
   },
 
   {
     path: '/auth/signup',
     handler: () => {
-      // TODO: Implement in Phase 1
-      document.getElementById('app').innerHTML = `
-        <div class="min-h-screen flex items-center justify-center bg-gray-50">
-          <div class="text-center">
-            <h1 class="text-2xl font-bold text-navy mb-4">Crear Cuenta</h1>
-            <p class="text-gray-600 mb-4">Próximamente en Fase 1</p>
-            <button data-router-link href="/" class="bg-brand text-white px-4 py-2 rounded">
-              Volver al inicio
-            </button>
-          </div>
-        </div>
-      `;
+      document.getElementById('app').innerHTML = renderRegisterPage();
+      initializeRegisterPage();
     },
+    guards: [requireGuest],
     title: 'Crear Cuenta - Kalos'
+  },
+
+  {
+    path: '/auth/forgot-password',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderForgotPasswordPage();
+      initializeForgotPasswordPage();
+    },
+    guards: [requireGuest],
+    title: 'Recuperar Contraseña - Kalos'
   },
 
   // Protected customer routes (require authentication)
@@ -123,28 +120,17 @@ export const routes = [
         </div>
       `;
     },
-    requiresAuth: true,
-    allowedRoles: ['customer'],
+    guards: [requireCustomer],
     title: 'Solicitar Reserva - Kalos'
   },
 
   {
     path: '/cuenta',
     handler: () => {
-      // TODO: Implement in Phase 1
-      document.getElementById('app').innerHTML = `
-        <div class="min-h-screen flex items-center justify-center bg-gray-50">
-          <div class="text-center">
-            <h1 class="text-2xl font-bold text-navy mb-4">Mi Cuenta</h1>
-            <p class="text-gray-600 mb-4">Próximamente en Fase 1</p>
-            <button data-router-link href="/" class="bg-brand text-white px-4 py-2 rounded">
-              Volver al inicio
-            </button>
-          </div>
-        </div>
-      `;
+      document.getElementById('app').innerHTML = renderAccountPage();
+      initializeAccountPage();
     },
-    requiresAuth: true,
+    guards: [requireCustomerOrProfessional],
     title: 'Mi Cuenta - Kalos'
   },
 
@@ -154,19 +140,51 @@ export const routes = [
     handler: () => {
       // TODO: Implement in Phase 2
       document.getElementById('app').innerHTML = `
-        <div class="min-h-screen flex items-center justify-center bg-gray-50">
-          <div class="text-center">
-            <h1 class="text-2xl font-bold text-navy mb-4">Dashboard Profesional</h1>
-            <p class="text-gray-600 mb-4">Próximamente en Fase 2</p>
-            <button data-router-link href="/" class="bg-brand text-white px-4 py-2 rounded">
-              Volver al inicio
-            </button>
+        <div class="min-h-screen bg-gray-50 py-8">
+          <div class="max-w-6xl mx-auto px-4">
+            <div class="bg-white rounded-lg shadow p-8">
+              <h1 class="text-3xl font-display font-bold text-navy mb-4">Dashboard Profesional</h1>
+              <p class="text-gray-600 mb-6">Panel de control para profesionales - En desarrollo</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-50 rounded-lg p-6">
+                  <h3 class="text-lg font-semibold text-navy mb-2">Mi Perfil</h3>
+                  <p class="text-gray-600 text-sm">Gestionar información profesional</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-6">
+                  <h3 class="text-lg font-semibold text-navy mb-2">Mis Servicios</h3>
+                  <p class="text-gray-600 text-sm">Administrar servicios ofrecidos</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-6">
+                  <h3 class="text-lg font-semibold text-navy mb-2">Reservas</h3>
+                  <p class="text-gray-600 text-sm">Próximamente en Fase 3</p>
+                </div>
+              </div>
+              <div class="mt-6">
+                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       `;
+      
+      // Add logout functionality
+      setTimeout(() => {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async () => {
+            const { authState } = await import('../utils/auth-state.js');
+            const success = await authState.logout();
+            if (success) {
+              const { navigateTo } = await import('../utils/router.js');
+              navigateTo('/');
+            }
+          });
+        }
+      }, 100);
     },
-    requiresAuth: true,
-    allowedRoles: ['professional'],
+    guards: [requireProfessional],
     title: 'Dashboard - Kalos Pro'
   },
 
@@ -193,6 +211,28 @@ export const routes = [
     title: 'Términos y Condiciones - Kalos'
   },
 
+  {
+    path: '/legal/privacidad',
+    handler: () => {
+      document.getElementById('app').innerHTML = `
+        <div class="min-h-screen bg-gray-50 py-12">
+          <div class="max-w-4xl mx-auto px-4">
+            <h1 class="text-3xl font-display font-bold text-navy mb-8">Política de Privacidad</h1>
+            <div class="bg-white rounded-lg p-8">
+              <p class="text-gray-600 mb-4">
+                Página en desarrollo. Próximamente tendremos nuestra política de privacidad completa.
+              </p>
+              <button data-router-link href="/" class="bg-brand text-white px-4 py-2 rounded">
+                Volver al inicio
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+    title: 'Política de Privacidad - Kalos'
+  },
+
   // Loading page
   {
     path: '/loading',
@@ -207,6 +247,7 @@ export const routes = [
     path: '/404',
     handler: () => {
       document.getElementById('app').innerHTML = renderNotFoundPage();
+      initializeNotFoundPage();
     },
     title: '404 - Página no encontrada'
   }
