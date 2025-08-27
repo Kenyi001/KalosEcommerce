@@ -71,13 +71,37 @@ export function initializeAccountPage() {
 
   // Wait for auth and populate user info
   authService.waitForAuth().then(({ user, profile }) => {
+    // For demo mode, check localStorage
     if (!user || !profile) {
-      navigateTo('/auth/login');
-      return;
+      if (import.meta.env.DEV) {
+        try {
+          const demoUser = localStorage.getItem('demoUser');
+          const demoProfile = localStorage.getItem('demoProfile');
+          
+          if (demoUser && demoProfile) {
+            user = JSON.parse(demoUser);
+            profile = JSON.parse(demoProfile);
+          }
+        } catch (error) {
+          console.error('Error loading demo user:', error);
+        }
+      }
+      
+      if (!user || !profile) {
+        navigateTo('/auth/login');
+        return;
+      }
     }
 
     populateUserInfo(user, profile);
-    populateRoleContent(profile.role);
+    populateRoleContent(profile.activeRole);
+    setupRoleAdditionButtons(profile);
+    
+    // Update header to show authenticated state
+    if (window.updateHeaderAuthState) {
+      console.log('🔄 Updating header from account page...');
+      window.updateHeaderAuthState();
+    }
   });
 
   // Logout functionality
@@ -150,10 +174,23 @@ function populateUserInfo(user, profile) {
   // Role badge
   const roleBadgeElements = document.querySelectorAll('[data-role-badge]');
   roleBadgeElements.forEach(el => {
-    const roleText = profile.role === 'professional' ? 'Profesional' : 'Cliente';
-    const roleClass = profile.role === 'professional' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+    const activeRole = profile.activeRole;
+    const availableRoles = profile.availableRoles || [];
+    
+    const roleText = activeRole === 'professional' ? 'Profesional' : 'Cliente';
+    const roleClass = activeRole === 'professional' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+    
     el.textContent = roleText;
-    el.className += ' ' + roleClass;
+    el.className = 'inline-block px-3 py-1 text-sm font-medium rounded-full mt-2 ' + roleClass;
+    
+    // Add role switch option if user has multiple roles
+    if (availableRoles.length > 1) {
+      el.style.cursor = 'pointer';
+      el.title = `Cambiar rol (tienes ${availableRoles.join(', ')})`;
+      el.addEventListener('click', () => {
+        showRoleSwitcher(availableRoles, activeRole);
+      });
+    }
   });
 
   // Member since
@@ -239,16 +276,24 @@ function getProfessionalContent() {
     <div class="mt-8">
       <h2 class="text-xl font-bold text-navy mb-4">Acciones Rápidas</h2>
       <div class="flex flex-wrap gap-4">
-        <button class="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover transition-colors">
-          Actualizar Servicios
+        <button class="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover transition-colors" onclick="window.location.href='/pro/dashboard'">
+          Ir a Dashboard Pro
         </button>
         <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">
           Ver Mi Perfil Público
         </button>
         <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">
-          Configurar Disponibilidad
+          Actualizar Servicios
         </button>
       </div>
+    </div>
+
+    <div class="mt-8 p-4 bg-purple-50 rounded-lg border border-purple-200">
+      <h3 class="text-lg font-semibold text-purple-800 mb-2">🚀 ¿Quieres ser también cliente?</h3>
+      <p class="text-purple-700 mb-3">Con una sola cuenta puedes ofrecer servicios y también contratarlos.</p>
+      <button id="addCustomerRole" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-sm">
+        Activar modo cliente
+      </button>
     </div>
   `;
 }
@@ -305,6 +350,14 @@ function getCustomerContent() {
         </button>
       </div>
     </div>
+
+    <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <h3 class="text-lg font-semibold text-blue-800 mb-2">💼 ¿Quieres ofrecer servicios?</h3>
+      <p class="text-blue-700 mb-3">Convierte tu cuenta en profesional y comienza a ofrecer servicios de belleza.</p>
+      <button id="addProfessionalRole" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+        Convertirse en profesional
+      </button>
+    </div>
   `;
 }
 
@@ -319,5 +372,137 @@ function getInitials(name) {
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   } else {
     return names[0].charAt(0).toUpperCase();
+  }
+}
+
+/**
+ * Show role switcher modal
+ */
+function showRoleSwitcher(availableRoles, currentRole) {
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <h3 class="text-lg font-bold text-navy mb-4">Cambiar Rol</h3>
+      <p class="text-gray-600 mb-4">Selecciona el rol con el que quieres continuar:</p>
+      <div class="space-y-3">
+        ${availableRoles.map(role => `
+          <button class="role-switch-btn w-full text-left p-3 rounded border-2 transition-colors ${role === currentRole ? 'border-brand bg-brand/10' : 'border-gray-200 hover:border-gray-300'}" 
+                  data-role="${role}">
+            <div class="flex items-center">
+              <div class="w-3 h-3 rounded-full ${role === currentRole ? 'bg-brand' : 'bg-gray-300'} mr-3"></div>
+              <div>
+                <div class="font-medium">${role === 'professional' ? 'Profesional' : 'Cliente'}</div>
+                <div class="text-sm text-gray-500">${role === 'professional' ? 'Ofrecer servicios de belleza' : 'Buscar y reservar servicios'}</div>
+              </div>
+            </div>
+          </button>
+        `).join('')}
+      </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button id="cancelRoleSwitch" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+        <button id="confirmRoleSwitch" class="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover">Cambiar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  let selectedRole = currentRole;
+
+  // Handle role selection
+  modal.querySelectorAll('.role-switch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedRole = btn.dataset.role;
+      
+      // Update visual selection
+      modal.querySelectorAll('.role-switch-btn').forEach(b => {
+        const isSelected = b.dataset.role === selectedRole;
+        b.className = `role-switch-btn w-full text-left p-3 rounded border-2 transition-colors ${isSelected ? 'border-brand bg-brand/10' : 'border-gray-200 hover:border-gray-300'}`;
+        b.querySelector('.w-3').className = `w-3 h-3 rounded-full ${isSelected ? 'bg-brand' : 'bg-gray-300'} mr-3`;
+      });
+    });
+  });
+
+  // Handle cancel
+  modal.querySelector('#cancelRoleSwitch').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+
+  // Handle confirm
+  modal.querySelector('#confirmRoleSwitch').addEventListener('click', async () => {
+    if (selectedRole !== currentRole) {
+      const btn = modal.querySelector('#confirmRoleSwitch');
+      btn.disabled = true;
+      btn.textContent = 'Cambiando...';
+      
+      try {
+        const result = await authService.switchRole(selectedRole);
+        if (result.success) {
+          document.body.removeChild(modal);
+          // Reload page to reflect new role
+          window.location.reload();
+        } else {
+          alert('Error al cambiar rol: ' + result.error);
+          btn.disabled = false;
+          btn.textContent = 'Cambiar';
+        }
+      } catch (error) {
+        console.error('Role switch error:', error);
+        alert('Error inesperado al cambiar rol');
+        btn.disabled = false;
+        btn.textContent = 'Cambiar';
+      }
+    } else {
+      document.body.removeChild(modal);
+    }
+  });
+}
+
+/**
+ * Setup role addition buttons
+ */
+function setupRoleAdditionButtons(profile) {
+  const availableRoles = profile.availableRoles || [];
+  
+  // Setup add customer role button
+  const addCustomerBtn = document.getElementById('addCustomerRole');
+  if (addCustomerBtn) {
+    if (availableRoles.includes('customer')) {
+      addCustomerBtn.style.display = 'none';
+    } else {
+      addCustomerBtn.addEventListener('click', () => addRole('customer'));
+    }
+  }
+
+  // Setup add professional role button
+  const addProfessionalBtn = document.getElementById('addProfessionalRole');
+  if (addProfessionalBtn) {
+    if (availableRoles.includes('professional')) {
+      addProfessionalBtn.style.display = 'none';
+    } else {
+      addProfessionalBtn.addEventListener('click', () => addRole('professional'));
+    }
+  }
+}
+
+/**
+ * Add new role to user account
+ */
+async function addRole(role) {
+  const confirmed = confirm(`¿Estás seguro que quieres agregar el rol de ${role === 'professional' ? 'profesional' : 'cliente'} a tu cuenta?`);
+  if (!confirmed) return;
+
+  try {
+    const result = await authService.addRole(role);
+    if (result.success) {
+      alert(`¡Rol ${role === 'professional' ? 'profesional' : 'cliente'} agregado exitosamente!`);
+      window.location.reload();
+    } else {
+      alert('Error al agregar rol: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Add role error:', error);
+    alert('Error inesperado al agregar rol');
   }
 }

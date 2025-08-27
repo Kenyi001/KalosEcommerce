@@ -6,6 +6,8 @@
 import { 
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
@@ -23,8 +25,13 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Initialize Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
 // Connect to emulators if in development
-if (useEmulator && !auth._delegate._config.emulator) {
+if (useEmulator && !auth._delegate?._config?.emulator) {
   try {
     connectAuthEmulator(auth, 'http://localhost:9099');
     connectFirestoreEmulator(db, 'localhost', 8080);
@@ -53,6 +60,14 @@ export class AuthService {
    * Initialize authentication state listener
    */
   initAuthStateListener() {
+    // In demo mode, don't use Firebase auth listener
+    if (import.meta.env.DEV && firebaseConfig.projectId === 'kalos-demo') {
+      console.log('🎭 Demo mode: Using local auth state management');
+      this.isInitialized = true;
+      this.restoreDemoUser();
+      return;
+    }
+
     onAuthStateChanged(auth, async (user) => {
       this.currentUser = user;
       
@@ -91,6 +106,191 @@ export class AuthService {
   }
 
   /**
+   * Login user with Google
+   * @param {string} [defaultRole='customer'] - Default role for new users
+   * @returns {Promise<{success: boolean, user?: Object, profile?: Object, isNewUser?: boolean, error?: string}>}
+   */
+  async loginWithGoogle(defaultRole = 'customer') {
+    try {
+      console.log('🔄 Starting Google Sign-In with role:', defaultRole);
+      
+      // Demo mode - simulate successful authentication
+      if (import.meta.env.DEV && firebaseConfig.projectId === 'kalos-demo') {
+        return await this.simulateDemoLogin(defaultRole);
+      }
+
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const isNewUser = result._tokenResponse?.isNewUser || false;
+
+      console.log('✅ Google Sign-In successful:', { uid: user.uid, email: user.email, isNewUser });
+
+      // Check if user profile exists
+      let userProfile = await this.getUserProfile(user.uid);
+
+      // If no profile exists, create one (new user)
+      if (!userProfile || isNewUser) {
+        console.log('📝 Creating new user profile...');
+        
+        const profileData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email,
+          photoURL: user.photoURL,
+          availableRoles: [defaultRole],
+          activeRole: defaultRole,
+          emailVerified: user.emailVerified,
+          isActive: true,
+          authProvider: 'google',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        // Initialize role-specific profiles
+        if (defaultRole === 'customer') {
+          profileData.customerProfile = {
+            preferences: [],
+            location: null,
+            favoriteServices: []
+          };
+        } else if (defaultRole === 'professional') {
+          profileData.professionalProfile = {
+            services: [],
+            experience: '',
+            verified: false,
+            rating: 0,
+            completedBookings: 0
+          };
+        }
+
+        await setDoc(doc(db, 'users', user.uid), profileData);
+        userProfile = profileData;
+        console.log('✅ User profile created successfully');
+      } else {
+        console.log('✅ Existing user profile loaded');
+      }
+      
+      return {
+        success: true,
+        user: user,
+        profile: userProfile,
+        isNewUser: isNewUser || !userProfile,
+        message: isNewUser ? 'Cuenta creada exitosamente con Google' : 'Inicio de sesión exitoso con Google'
+      };
+    } catch (error) {
+      console.error('❌ Google Sign-In failed:', error);
+      return {
+        success: false,
+        error: this.handleAuthError(error)
+      };
+    }
+  }
+
+  /**
+   * Simulate demo login for development
+   */
+  async simulateDemoLogin(defaultRole = 'customer') {
+    console.log('🎭 Demo mode: Creating simulated Google authentication with role:', defaultRole);
+    
+    // Generate a demo user
+    const mockUser = {
+      uid: 'demo-google-user',
+      email: 'demo@kalos.com',
+      displayName: 'Usuario Demo',
+      photoURL: null,
+      emailVerified: true
+    };
+
+    const profileData = {
+      uid: mockUser.uid,
+      email: mockUser.email,
+      displayName: mockUser.displayName,
+      photoURL: mockUser.photoURL,
+      availableRoles: [defaultRole],
+      activeRole: defaultRole,
+      emailVerified: true,
+      isActive: true,
+      authProvider: 'google',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // Initialize role-specific profiles
+    if (defaultRole === 'customer') {
+      profileData.customerProfile = {
+        preferences: [],
+        location: null,
+        favoriteServices: []
+      };
+    } else if (defaultRole === 'professional') {
+      profileData.professionalProfile = {
+        services: [],
+        experience: '',
+        verified: false,
+        rating: 0,
+        completedBookings: 0
+      };
+    }
+
+    console.log('🎭 Demo user profile created:', profileData);
+
+    // Store demo user in localStorage for persistence
+    localStorage.setItem('demoUser', JSON.stringify(mockUser));
+    localStorage.setItem('demoProfile', JSON.stringify(profileData));
+
+    // Simulate auth state change
+    this.currentUser = mockUser;
+    this.currentUserProfile = profileData;
+    this.isInitialized = true;
+    
+    console.log('🎭 Notifying listeners...');
+    this.notifyListeners(mockUser, profileData);
+
+    const result = {
+      success: true,
+      user: mockUser,
+      profile: profileData,
+      isNewUser: true,
+      message: 'Demo: Cuenta creada exitosamente con Google'
+    };
+
+    console.log('🎭 Returning demo login result:', result);
+    return result;
+  }
+
+  /**
+   * Restore demo user from localStorage
+   */
+  restoreDemoUser() {
+    try {
+      const demoUser = localStorage.getItem('demoUser');
+      const demoProfile = localStorage.getItem('demoProfile');
+      
+      if (demoUser && demoProfile) {
+        this.currentUser = JSON.parse(demoUser);
+        this.currentUserProfile = JSON.parse(demoProfile);
+        console.log('🎭 Demo user restored from localStorage');
+        this.notifyListeners(this.currentUser, this.currentUserProfile);
+      } else {
+        console.log('🎭 No demo user found in localStorage');
+        this.notifyListeners(null, null);
+      }
+    } catch (error) {
+      console.error('Error restoring demo user:', error);
+      this.notifyListeners(null, null);
+    }
+  }
+
+  /**
+   * Register user with Google (alias for loginWithGoogle with professional default)
+   * @param {string} role - User role (customer/professional)
+   * @returns {Promise<{success: boolean, user?: Object, profile?: Object, isNewUser?: boolean, error?: string}>}
+   */
+  async registerWithGoogle(role = 'customer') {
+    return await this.loginWithGoogle(role);
+  }
+
+  /**
    * Register new user
    */
   async register(userData) {
@@ -120,18 +320,39 @@ export class AuthService {
       // Update display name
       await updateProfile(user, { displayName });
 
-      // Create user profile in Firestore
+      // Create user profile in Firestore with dual-role support
       const profileData = {
         uid: user.uid,
         email: user.email,
         displayName: displayName,
-        role: role,
         phone: phone || null,
+        availableRoles: [role], // Start with selected role, can expand later
+        activeRole: role,       // Currently active role
         emailVerified: user.emailVerified,
         isActive: true,
+        authProvider: 'email',
         createdAt: new Date(),
         updatedAt: new Date()
       };
+
+      // Initialize role-specific profiles
+      if (role === 'customer') {
+        profileData.customerProfile = {
+          preferences: [],
+          location: null,
+          favoriteServices: [],
+          phone: phone || null
+        };
+      } else if (role === 'professional') {
+        profileData.professionalProfile = {
+          services: [],
+          experience: '',
+          verified: false,
+          rating: 0,
+          completedBookings: 0,
+          phone: phone || null
+        };
+      }
 
       await setDoc(doc(db, 'users', user.uid), profileData);
 
@@ -161,6 +382,19 @@ export class AuthService {
    */
   async logout() {
     try {
+      // Demo mode - clear localStorage
+      if (import.meta.env.DEV && firebaseConfig.projectId === 'kalos-demo') {
+        localStorage.removeItem('demoUser');
+        localStorage.removeItem('demoProfile');
+        this.currentUser = null;
+        this.currentUserProfile = null;
+        this.notifyListeners(null, null);
+        return { 
+          success: true,
+          message: 'Demo: Sesión cerrada exitosamente'
+        };
+      }
+
       await signOut(auth);
       return { 
         success: true,
@@ -284,20 +518,32 @@ export class AuthService {
    * Get current user role
    */
   getUserRole() {
-    return this.currentUserProfile?.role || null;
-  }
-
-  /**
-   * Check if user has specific role
-   */
-  hasRole(role) {
-    return this.getUserRole() === role;
+    return this.currentUserProfile?.activeRole || null;
   }
 
   /**
    * Wait for auth initialization
    */
   async waitForAuth() {
+    // In demo mode, try to get from localStorage first
+    if (import.meta.env.DEV && firebaseConfig.projectId === 'kalos-demo') {
+      if (!this.currentUser || !this.currentUserProfile) {
+        try {
+          const demoUser = localStorage.getItem('demoUser');
+          const demoProfile = localStorage.getItem('demoProfile');
+          
+          if (demoUser && demoProfile) {
+            this.currentUser = JSON.parse(demoUser);
+            this.currentUserProfile = JSON.parse(demoProfile);
+            this.isInitialized = true;
+            console.log('🎭 waitForAuth: Restored demo user from localStorage');
+          }
+        } catch (error) {
+          console.error('Error restoring demo user in waitForAuth:', error);
+        }
+      }
+    }
+
     return new Promise((resolve) => {
       if (this.isInitialized) {
         resolve({ user: this.currentUser, profile: this.currentUserProfile });
@@ -309,6 +555,154 @@ export class AuthService {
         resolve({ user, profile });
       });
     });
+  }
+
+
+  /**
+   * Get all available roles for current user
+   */
+  getAvailableRoles() {
+    return this.currentUserProfile?.availableRoles || [];
+  }
+
+  /**
+   * Check if user has specific role available
+   */
+  hasRole(role) {
+    const availableRoles = this.getAvailableRoles();
+    return availableRoles.includes(role);
+  }
+
+  /**
+   * Check if user is currently acting as customer
+   */
+  isCustomer() {
+    return this.getUserRole() === 'customer';
+  }
+
+  /**
+   * Check if user is currently acting as professional
+   */
+  isProfessional() {
+    return this.getUserRole() === 'professional';
+  }
+
+  /**
+   * Switch user's active role
+   */
+  async switchRole(newRole) {
+    if (!this.currentUser || !this.currentUserProfile) {
+      return {
+        success: false,
+        error: 'Usuario no autenticado'
+      };
+    }
+
+    const availableRoles = this.getAvailableRoles();
+    if (!availableRoles.includes(newRole)) {
+      return {
+        success: false,
+        error: `No tienes acceso al rol: ${newRole}`
+      };
+    }
+
+    try {
+      // Update active role in Firestore
+      const userRef = doc(db, 'users', this.currentUser.uid);
+      await updateDoc(userRef, {
+        activeRole: newRole,
+        updatedAt: new Date()
+      });
+
+      // Update local profile
+      this.currentUserProfile.activeRole = newRole;
+      
+      // Notify listeners of role change
+      this.notifyListeners(this.currentUser, this.currentUserProfile);
+
+      return {
+        success: true,
+        newRole: newRole,
+        message: `Cambiado a modo ${newRole === 'customer' ? 'cliente' : 'profesional'}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Error al cambiar de rol: ' + error.message
+      };
+    }
+  }
+
+  /**
+   * Add new role to user (become professional, etc.)
+   */
+  async addRole(newRole, additionalData = {}) {
+    if (!this.currentUser || !this.currentUserProfile) {
+      return {
+        success: false,
+        error: 'Usuario no autenticado'
+      };
+    }
+
+    const availableRoles = this.getAvailableRoles();
+    if (availableRoles.includes(newRole)) {
+      return {
+        success: false,
+        error: 'Ya tienes acceso a este rol'
+      };
+    }
+
+    try {
+      const userRef = doc(db, 'users', this.currentUser.uid);
+      const updateData = {
+        availableRoles: [...availableRoles, newRole],
+        updatedAt: new Date()
+      };
+
+      // Add role-specific profile data
+      if (newRole === 'professional') {
+        updateData.professionalProfile = {
+          services: additionalData.services || [],
+          experience: additionalData.experience || '',
+          verified: false,
+          rating: 0,
+          completedBookings: 0,
+          ...additionalData
+        };
+      } else if (newRole === 'customer') {
+        updateData.customerProfile = {
+          preferences: additionalData.preferences || [],
+          location: additionalData.location || null,
+          favoriteServices: additionalData.favoriteServices || [],
+          ...additionalData
+        };
+      }
+
+      await updateDoc(userRef, updateData);
+
+      // Update local profile
+      this.currentUserProfile.availableRoles = updateData.availableRoles;
+      if (updateData.professionalProfile) {
+        this.currentUserProfile.professionalProfile = updateData.professionalProfile;
+      }
+      if (updateData.customerProfile) {
+        this.currentUserProfile.customerProfile = updateData.customerProfile;
+      }
+
+      // Notify listeners
+      this.notifyListeners(this.currentUser, this.currentUserProfile);
+
+      return {
+        success: true,
+        newRole: newRole,
+        message: `Rol ${newRole} agregado exitosamente`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Error al agregar rol: ' + error.message
+      };
+    }
   }
 }
 

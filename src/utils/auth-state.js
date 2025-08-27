@@ -51,7 +51,8 @@ class AuthStateManager {
       if (import.meta.env.DEV) {
         console.log('🔐 Auth state changed:', {
           authenticated: !!user,
-          role: profile?.role,
+          activeRole: profile?.activeRole,
+          availableRoles: profile?.availableRoles,
           email: user?.email
         });
       }
@@ -165,8 +166,8 @@ class AuthStateManager {
         case 'dashboard':
           if (isAuthenticated && this.currentProfile) {
             element.style.display = '';
-            // Update href based on role
-            if (this.currentProfile.role === 'professional') {
+            // Update href based on active role
+            if (this.currentProfile.activeRole === 'professional') {
               element.setAttribute('href', '/pro/dashboard');
             } else {
               element.setAttribute('href', '/cuenta');
@@ -224,9 +225,9 @@ class AuthStateManager {
     
     roleElements.forEach(element => {
       const requiredRoles = element.getAttribute('data-role').split(',').map(r => r.trim());
-      const userRole = this.currentProfile?.role;
+      const userActiveRole = this.currentProfile?.activeRole;
       
-      if (userRole && requiredRoles.includes(userRole)) {
+      if (userActiveRole && requiredRoles.includes(userActiveRole)) {
         element.style.display = '';
       } else {
         element.style.display = 'none';
@@ -235,8 +236,8 @@ class AuthStateManager {
 
     // Update role-specific classes
     const bodyElement = document.body;
-    if (this.currentProfile?.role) {
-      bodyElement.setAttribute('data-user-role', this.currentProfile.role);
+    if (this.currentProfile?.activeRole) {
+      bodyElement.setAttribute('data-user-role', this.currentProfile.activeRole);
     } else {
       bodyElement.removeAttribute('data-user-role');
     }
@@ -289,21 +290,30 @@ class AuthStateManager {
   }
 
   /**
-   * Check if current user has specific role
+   * Check if current user has specific role as active role
    * @param {string} role - Role to check
    * @returns {boolean} Role check result
    */
   hasRole(role) {
-    return this.currentProfile?.role === role;
+    return this.currentProfile?.activeRole === role;
   }
 
   /**
-   * Check if current user has any of the specified roles
+   * Check if current user has any of the specified roles as active role
    * @param {string[]} roles - Array of roles to check
    * @returns {boolean} Role check result
    */
   hasAnyRole(roles) {
-    return roles.includes(this.currentProfile?.role);
+    return roles.includes(this.currentProfile?.activeRole);
+  }
+
+  /**
+   * Check if current user has access to a specific role (in availableRoles)
+   * @param {string} role - Role to check
+   * @returns {boolean} Access check result
+   */
+  hasAccessToRole(role) {
+    return this.currentProfile?.availableRoles?.includes(role) || false;
   }
 
   /**

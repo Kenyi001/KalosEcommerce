@@ -79,7 +79,7 @@ export const routes = [
       document.getElementById('app').innerHTML = renderLoginPage();
       initializeLoginPage();
     },
-    guards: [requireGuest],
+    guards: import.meta.env.DEV ? [] : [requireGuest], // No guards in dev mode
     title: 'Iniciar Sesión - Kalos'
   },
 
@@ -130,7 +130,7 @@ export const routes = [
       document.getElementById('app').innerHTML = renderAccountPage();
       initializeAccountPage();
     },
-    guards: [requireCustomerOrProfessional],
+    guards: import.meta.env.DEV ? [] : [requireCustomerOrProfessional], // No guards in dev mode
     title: 'Mi Cuenta - Kalos'
   },
 

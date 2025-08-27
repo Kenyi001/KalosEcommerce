@@ -18,6 +18,19 @@ export async function requireAuth(path, route) {
     const { user } = await authService.waitForAuth();
     
     if (!user) {
+      // In demo mode, check localStorage for demo user
+      if (import.meta.env.DEV) {
+        try {
+          const demoUser = localStorage.getItem('demoUser');
+          if (demoUser) {
+            console.log('🎭 Demo user found in localStorage, allowing access');
+            return true;
+          }
+        } catch (error) {
+          console.error('Error checking demo user:', error);
+        }
+      }
+      
       // Store intended destination for post-login redirect
       sessionStorage.setItem('redirectAfterAuth', path);
       return '/auth/login';
@@ -44,8 +57,8 @@ export async function requireGuest(path, route) {
     const { user, profile } = await authService.waitForAuth();
     
     if (user && profile) {
-      // Redirect based on user role
-      if (profile.role === 'professional') {
+      // Redirect based on user active role
+      if (profile.activeRole === 'professional') {
         return '/pro/dashboard';
       } else {
         return '/cuenta';
@@ -79,19 +92,44 @@ export function requireRole(allowedRoles) {
       // Get current user profile
       const { profile } = await authService.waitForAuth();
       
-      if (!profile || !profile.role) {
-        console.warn('User profile or role not found');
+      if (!profile || !profile.activeRole) {
+        console.warn('User profile or active role not found');
+        
+        // In demo mode, check localStorage for demo profile
+        if (import.meta.env.DEV) {
+          try {
+            const demoProfile = localStorage.getItem('demoProfile');
+            if (demoProfile) {
+              const parsedProfile = JSON.parse(demoProfile);
+              console.log('🎭 Using demo profile from localStorage:', parsedProfile);
+              
+              if (parsedProfile.activeRole && roles.includes(parsedProfile.activeRole)) {
+                return true;
+              }
+              
+              // Redirect based on demo user's role
+              if (parsedProfile.activeRole === 'professional') {
+                return '/pro/dashboard';
+              } else if (parsedProfile.activeRole === 'customer') {
+                return '/cuenta';
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing demo profile:', error);
+          }
+        }
+        
         return '/auth/login';
       }
       
-      // Check if user has allowed role
-      if (!roles.includes(profile.role)) {
-        console.warn(`Access denied. Required roles: ${roles.join(', ')}, user role: ${profile.role}`);
+      // Check if user has allowed role currently active
+      if (!roles.includes(profile.activeRole)) {
+        console.warn(`Access denied. Required roles: ${roles.join(', ')}, user active role: ${profile.activeRole}`);
         
-        // Redirect to appropriate dashboard based on actual role
-        if (profile.role === 'professional') {
+        // Redirect to appropriate dashboard based on active role
+        if (profile.activeRole === 'professional') {
           return '/pro/dashboard';
-        } else if (profile.role === 'customer') {
+        } else if (profile.activeRole === 'customer') {
           return '/cuenta';
         } else {
           return '/';

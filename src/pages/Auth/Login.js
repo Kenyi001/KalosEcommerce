@@ -122,19 +122,19 @@ export function renderLoginPage() {
           <div class="mt-6">
             <div class="relative">
               <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-gray-300" />
+                <div class="w-full border-t border-gray-300"></div>
               </div>
               <div class="relative flex justify-center text-sm">
                 <span class="px-2 bg-white text-gray-500">O continúa con</span>
               </div>
             </div>
 
-            <!-- Social Login (Future) -->
+            <!-- Google Login -->
             <div class="mt-6 grid grid-cols-1 gap-3">
               <button
                 type="button"
-                class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 cursor-not-allowed opacity-50"
-                disabled
+                id="googleLoginBtn"
+                class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -142,7 +142,10 @@ export function renderLoginPage() {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                <span class="ml-2">Google (Próximamente)</span>
+                <span class="ml-2" id="googleLoginText">Continuar con Google</span>
+                <div id="googleLoginSpinner" class="hidden ml-2">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                </div>
               </button>
             </div>
           </div>
@@ -331,6 +334,68 @@ export function initializeLoginPage() {
         console.error('Login error:', error);
         showMessage('error', 'Error inesperado. Por favor intenta nuevamente.');
         setLoading(false);
+      }
+    });
+  }
+
+  // Google Login functionality
+  const googleLoginBtn = document.getElementById('googleLoginBtn');
+  const googleLoginText = document.getElementById('googleLoginText');
+  const googleLoginSpinner = document.getElementById('googleLoginSpinner');
+
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+      // Set loading state
+      googleLoginBtn.disabled = true;
+      googleLoginText.textContent = 'Conectando...';
+      googleLoginSpinner.classList.remove('hidden');
+
+      try {
+        console.log('🔄 Attempting Google login...');
+        
+        const result = await authService.loginWithGoogle('customer');
+        console.log('✅ Google login result:', result);
+
+        if (result.success) {
+          showMessage('success', result.message);
+          
+          // Update header immediately after successful login
+          setTimeout(() => {
+            if (window.updateHeaderAuthState) {
+              console.log('🔄 Updating header after login...');
+              window.updateHeaderAuthState();
+            }
+          }, 100);
+          
+          // Check for redirect destination
+          const redirectPath = sessionStorage.getItem('redirectAfterAuth');
+          if (redirectPath) {
+            sessionStorage.removeItem('redirectAfterAuth');
+            setTimeout(() => navigateTo(redirectPath), 1000);
+          } else {
+            // Redirect based on user role
+            const userRole = result.profile?.activeRole;
+            if (userRole === 'professional') {
+              setTimeout(() => navigateTo('/pro/dashboard'), 1000);
+            } else {
+              setTimeout(() => navigateTo('/cuenta'), 1000);
+            }
+          }
+        } else {
+          console.error('❌ Google login failed:', result.error);
+          showMessage('error', result.error);
+          // Reset button state
+          googleLoginBtn.disabled = false;
+          googleLoginText.textContent = 'Continuar con Google';
+          googleLoginSpinner.classList.add('hidden');
+        }
+      } catch (error) {
+        console.error('❌ Google login error:', error);
+        showMessage('error', 'Error al conectar con Google. Por favor intenta nuevamente.');
+        // Reset button state
+        googleLoginBtn.disabled = false;
+        googleLoginText.textContent = 'Continuar con Google';
+        googleLoginSpinner.classList.add('hidden');
       }
     });
   }
