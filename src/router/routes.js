@@ -23,8 +23,12 @@ import { renderServiceFormPage, initializeServiceFormPage } from '../pages/Profe
 import { renderLandingPage, initializeLandingPage } from '../pages/Landing.js';
 import { renderMarketplacePage, initializeMarketplacePage } from '../pages/Marketplace.js';
 
+// Booking system imports
+import { renderBookingFlowPage, initializeBookingFlowPage } from '../pages/Booking/BookingFlow.js';
+
 // Import route handlers (will be implemented in later phases)
 // import { renderSearchPage } from '../pages/Search.js';
+// Note: renderBookingDetailPage and renderBookingConfirmationPage will be implemented next
 
 /**
  * Route definitions following the Project Chapter specifications
@@ -224,6 +228,39 @@ export const routes = [
       initializeProfessionalDetailPage(professionalId);
     },
     title: 'Perfil Profesional - Kalos'
+  },
+
+  // Booking system routes
+  {
+    path: '/booking/new',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderBookingFlowPage();
+      initializeBookingFlowPage();
+    },
+    guards: [requireCustomer],
+    title: 'Nueva Reserva - Kalos'
+  },
+
+  {
+    path: '/booking/:id',
+    handler: (path) => {
+      const bookingId = path.split('/')[2];
+      document.getElementById('app').innerHTML = renderBookingDetailPage(bookingId);
+      initializeBookingDetailPage(bookingId);
+    },
+    guards: [requireCustomerOrProfessional],
+    title: 'Detalles de Reserva - Kalos'
+  },
+
+  {
+    path: '/booking/confirmation/:id',
+    handler: (path) => {
+      const bookingId = path.split('/')[2];
+      document.getElementById('app').innerHTML = renderBookingConfirmationPage(bookingId);
+      initializeBookingConfirmationPage(bookingId);
+    },
+    guards: [requireCustomerOrProfessional],
+    title: 'Reserva Confirmada - Kalos'
   },
 
   // Legal pages

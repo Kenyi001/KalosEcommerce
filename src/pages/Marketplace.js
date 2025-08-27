@@ -55,6 +55,13 @@ export function renderMarketplacePage() {
             </div>
             
             <div class="flex items-center space-x-4">
+              <!-- Nueva Reserva Button (for customers) -->
+              <button 
+                id="newBookingBtn" 
+                class="customer-only bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover transition-colors font-medium shadow-lg hidden">
+                ✨ Nueva Reserva
+              </button>
+              
               <select id="sortBy" class="text-sm border border-gray-300 rounded-lg px-3 py-2">
                 <option value="rating">Mejor valorados</option>
                 <option value="distance">Más cercanos</option>
@@ -365,6 +372,17 @@ export function initializeMarketplacePage() {
       const sidebar = document.getElementById('filtersSidebar');
       sidebar.classList.toggle('hidden');
     });
+    
+    // Nueva Reserva button
+    const newBookingBtn = document.getElementById('newBookingBtn');
+    if (newBookingBtn) {
+      newBookingBtn.addEventListener('click', () => {
+        navigateTo('/booking/new');
+      });
+    }
+    
+    // Show/hide booking button based on user role
+    checkUserRoleAndShowButtons();
   }
 
   function handleSearch() {
@@ -599,6 +617,33 @@ export function initializeMarketplacePage() {
     };
     
     return categories[categoryKey] || categoryKey;
+  }
+
+  async function checkUserRoleAndShowButtons() {
+    try {
+      const { user, profile } = await authService.waitForAuth();
+      
+      const newBookingBtn = document.getElementById('newBookingBtn');
+      
+      if (user && profile && newBookingBtn) {
+        // Show booking button for customers or users with customer role
+        if (profile.activeRole === 'customer' || 
+            (profile.availableRoles && profile.availableRoles.includes('customer'))) {
+          newBookingBtn.classList.remove('hidden');
+          console.log('🎯 Showing booking button for customer user');
+        } else {
+          newBookingBtn.classList.add('hidden');
+          console.log('🎯 Hiding booking button for professional-only user');
+        }
+      } else {
+        // Hide booking button for non-authenticated users
+        if (newBookingBtn) {
+          newBookingBtn.classList.add('hidden');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error);
+    }
   }
 }
 

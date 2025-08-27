@@ -592,4 +592,8 @@ class ServicesService {
   }
 }
 
+// Export new booking and availability services
+export { BookingService } from './bookings.js';
+export { AvailabilityService } from './availability.js';
+
 export const servicesService = new ServicesService();
