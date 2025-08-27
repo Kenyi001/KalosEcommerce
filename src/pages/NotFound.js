@@ -28,9 +28,9 @@ export function renderNotFoundPage() {
           
           <button 
             data-router-link 
-            data-href="/buscar"
+            data-href="/marketplace"
             class="w-full border border-brand text-brand hover:bg-brand hover:text-kalos-white px-6 py-3 rounded-lg font-semibold transition-colors">
-            Buscar Profesionales
+            Ir al Marketplace
           </button>
         </div>
 

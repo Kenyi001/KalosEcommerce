@@ -46,6 +46,9 @@ export function renderProfessionalDashboardPage() {
                 <button id="editProfileBtn" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover transition-colors">
                   Editar Perfil
                 </button>
+                <button id="addClientRoleBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                  + Agregar Rol Cliente
+                </button>
               </div>
             </div>
           </div>
@@ -294,15 +297,24 @@ export function initializeProfessionalDashboardPage() {
       }
       
       // Load professional data
-      const professionalResult = await professionalService.getProfessionalById(currentUser.uid);
-      if (professionalResult.success) {
-        professional = professionalResult.data;
+      console.log('📊 Loading professional profile for UID:', currentUser.uid);
+      const professionalResult = await professionalService.getProfile(currentUser.uid);
+      console.log('📊 Professional result:', professionalResult);
+      if (professionalResult) {
+        professional = professionalResult;
       }
       
       // Load services
-      const servicesResult = await servicesService.getServicesByProfessional(currentUser.uid);
-      if (servicesResult.success) {
-        services = servicesResult.data;
+      console.log('📊 Loading services for professional:', currentUser.uid);
+      try {
+        const servicesResult = await servicesService.getServicesByProfessional(currentUser.uid);
+        console.log('📊 Services result:', servicesResult);
+        if (servicesResult && Array.isArray(servicesResult)) {
+          services = servicesResult;
+        }
+      } catch (error) {
+        console.warn('📊 Could not load services:', error.message);
+        services = []; // Set empty array as fallback
       }
       
       // TODO: Load bookings when booking system is implemented
@@ -340,6 +352,9 @@ export function initializeProfessionalDashboardPage() {
     
     // Show profile status if not verified
     renderProfileStatus();
+
+    // Handle add client role button visibility
+    handleRoleButtonVisibility();
     
     // Setup event listeners
     setupEventListeners();
@@ -506,6 +521,11 @@ export function initializeProfessionalDashboardPage() {
     document.getElementById('manageServicesBtn').addEventListener('click', () => {
       navigateTo('/pro/services');
     });
+
+    // Add client role
+    document.getElementById('addClientRoleBtn').addEventListener('click', () => {
+      addCustomerRole();
+    });
   }
 
   // Global function for editing services
@@ -516,6 +536,56 @@ export function initializeProfessionalDashboardPage() {
   function showError(message) {
     // You could implement a toast notification here
     console.error(message);
+  }
+
+  // Function to handle role button visibility
+  async function handleRoleButtonVisibility() {
+    const addClientBtn = document.getElementById('addClientRoleBtn');
+    if (!addClientBtn) return;
+
+    try {
+      const currentProfile = await authService.getCurrentUserProfile();
+      const availableRoles = currentProfile?.availableRoles || [];
+      
+      console.log('🆔 Current available roles:', availableRoles);
+      
+      if (availableRoles.includes('customer')) {
+        // User already has customer role, hide the button
+        addClientBtn.style.display = 'none';
+        console.log('🆔 User already has customer role, hiding button');
+      } else {
+        // User doesn't have customer role, show the button
+        addClientBtn.style.display = 'inline-flex';
+        console.log('🆔 User needs customer role, showing button');
+      }
+    } catch (error) {
+      console.error('Error checking user roles:', error);
+      // On error, show the button as fallback
+      addClientBtn.style.display = 'inline-flex';
+    }
+  }
+
+  // Function to add customer role
+  async function addCustomerRole() {
+    const confirmed = confirm('¿Quieres agregar el rol de cliente a tu cuenta? Esto te permitirá cambiar entre modo profesional y cliente.');
+    if (!confirmed) return;
+
+    try {
+      console.log('🆔 Adding customer role...');
+      const result = await authService.addRole('customer');
+      console.log('🆔 AddRole result:', result);
+      
+      if (result.success) {
+        alert('¡Rol cliente agregado exitosamente! Ahora puedes cambiar entre profesional y cliente desde el header.');
+        // Refresh page to update the header
+        window.location.reload();
+      } else {
+        alert('Error al agregar rol cliente: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error adding customer role:', error);
+      alert('Error inesperado al agregar rol cliente');
+    }
   }
 }
 

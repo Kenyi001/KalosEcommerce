@@ -193,6 +193,13 @@ export function initializeHomePage() {
     }
 
     if (user && profile) {
+      // If user is professional, redirect to their dashboard instead of staying on home
+      if (profile.activeRole === 'professional') {
+        console.log('🏠 Professional user detected, redirecting to dashboard...');
+        navigateTo('/pro/dashboard');
+        return;
+      }
+      
       // User is logged in, update buttons accordingly
       updateButtonsForAuthenticatedUser(profile);
       
@@ -240,11 +247,11 @@ function handleCustomerFlow() {
   // Check if user is authenticated
   authService.waitForAuth().then(({ user, profile }) => {
     if (user && profile) {
-      // User is logged in, go directly to search
-      navigateTo('/buscar');
+      // User is logged in, go directly to marketplace
+      navigateTo('/marketplace');
     } else {
       // User needs to register/login as customer
-      navigateTo('/auth/signup?mode=customer');
+      navigateTo('/auth/register?mode=customer');
     }
   });
 }
@@ -265,7 +272,7 @@ function handleProfessionalFlow() {
       }
     } else {
       // User needs to register/login as professional
-      navigateTo('/auth/signup?mode=professional');
+      navigateTo('/auth/register?mode=professional');
     }
   });
 }

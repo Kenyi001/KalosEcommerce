@@ -1,299 +1,605 @@
 /**
- * Home Page - Landing page for Kalos E-commerce
- * Clean design with subtle role selection
+ * Marketplace Page - Main home page for authenticated users
+ * Shows available professionals and services
  */
 
 import { renderWithLayout, initializeLayout } from '../components/Layout.js';
-import { navigateTo } from '../utils/router.js';
+import { professionalService } from '../services/professionals.js';
 import { authService } from '../services/auth.js';
+import { navigateTo } from '../utils/router.js';
+import { ProfessionalCard } from '../components/professionals/ProfessionalCard.js';
 
-export function renderHomePage() {
+export function renderMarketplacePage() {
   const content = `
-    <div class="bg-kalos-white">
+    <div class="min-h-screen bg-gray-50">
       <!-- Hero Section -->
-      <section class="bg-gradient-to-br from-brand to-deep-coral text-white py-20">
+      <section class="bg-gradient-to-br from-brand to-deep-coral text-white py-16">
         <div class="max-w-6xl mx-auto px-4 text-center">
-          <h1 class="text-5xl md:text-6xl font-display font-semibold mb-6">
-            Belleza a Domicilio
+          <h1 class="text-4xl md:text-5xl font-display font-bold mb-4">
+            Encuentra tu Profesional Ideal
           </h1>
-          <p class="text-xl md:text-2xl mb-12 text-white/90">
-            Conectamos profesionales de belleza con clientes en Bolivia
+          <p class="text-xl mb-8 text-white/90 max-w-3xl mx-auto">
+            Conecta con los mejores profesionales de belleza verificados en Bolivia
           </p>
           
-          <!-- Role Selection - Subtle Integration -->
-          <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <button 
-              id="customerModeBtn"
-              class="bg-kalos-white text-brand px-8 py-6 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg group">
-              <div class="text-3xl mb-2">💅</div>
-              <div class="text-lg font-bold">Necesito un Servicio</div>
-              <div class="text-sm text-gray-600 mt-1">Buscar profesionales</div>
-            </button>
+          <!-- Search Bar -->
+          <div class="max-w-2xl mx-auto">
+            <div class="relative">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="¿Qué servicio necesitas? (ej: corte, manicure, maquillaje)"
+                class="w-full px-6 py-4 rounded-full text-gray-900 text-lg focus:outline-none focus:ring-4 focus:ring-white/30 shadow-lg"
+              />
+              <button id="searchBtn" class="absolute right-2 top-2 bg-brand text-white px-6 py-2 rounded-full hover:bg-brand-hover transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Filters -->
+      <section class="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+          <div class="flex items-center justify-between">
+            <div class="flex space-x-2 overflow-x-auto">
+              <button class="filter-btn active" data-category="">Todos</button>
+              <button class="filter-btn" data-category="hair">Cabello</button>
+              <button class="filter-btn" data-category="nails">Uñas</button>
+              <button class="filter-btn" data-category="makeup">Maquillaje</button>
+              <button class="filter-btn" data-category="skincare">Cuidado de piel</button>
+              <button class="filter-btn" data-category="massage">Masajes</button>
+            </div>
             
-            <button 
-              id="professionalModeBtn"
-              class="border-2 border-kalos-white text-kalos-white px-8 py-6 rounded-lg font-semibold hover:bg-white/10 transition-colors group">
-              <div class="text-3xl mb-2">✨</div>
-              <div class="text-lg font-bold">Quiero Ofrecer Servicios</div>
-              <div class="text-sm text-white/80 mt-1">Únete como profesional</div>
-            </button>
-          </div>
-
-          <div class="mt-8">
-            <button 
-              id="loginBtn"
-              class="text-white/90 hover:text-white text-sm underline">
-              ¿Ya tienes cuenta? Iniciar sesión
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Features Section -->
-      <section class="py-16 bg-gray-50">
-        <div class="max-w-6xl mx-auto px-4">
-          <h2 class="text-3xl font-display text-center mb-12 text-navy">
-            ¿Cómo Funciona?
-          </h2>
-          <div class="grid md:grid-cols-3 gap-8">
-            <div class="text-center">
-              <div class="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="text-2xl">🔍</span>
-              </div>
-              <h3 class="text-xl font-semibold mb-2 text-navy">Busca</h3>
-              <p class="text-gray-600">Encuentra profesionales cerca de ti</p>
-            </div>
-            <div class="text-center">
-              <div class="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="text-2xl">📅</span>
-              </div>
-              <h3 class="text-xl font-semibold mb-2 text-navy">Reserva</h3>
-              <p class="text-gray-600">Solicita tu cita preferida</p>
-            </div>
-            <div class="text-center">
-              <div class="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="text-2xl">✨</span>
-              </div>
-              <h3 class="text-xl font-semibold mb-2 text-navy">Disfruta</h3>
-              <p class="text-gray-600">Belleza en la comodidad de tu hogar</p>
+            <div class="flex items-center space-x-4">
+              <select id="sortBy" class="text-sm border border-gray-300 rounded-lg px-3 py-2">
+                <option value="rating">Mejor valorados</option>
+                <option value="distance">Más cercanos</option>
+                <option value="price">Precio menor</option>
+                <option value="recent">Más recientes</option>
+              </select>
+              
+              <button id="filterToggle" class="text-sm bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                </svg>
+                Filtros
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Benefits Section -->
-      <section class="py-16 bg-white">
-        <div class="max-w-6xl mx-auto px-4">
-          <div class="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 class="text-3xl font-display font-bold text-navy mb-8">
-                ¿Por qué elegir Kalos?
-              </h2>
-              <div class="space-y-6">
-                <div class="flex items-start space-x-4">
-                  <div class="w-8 h-8 bg-brand/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                    <span class="text-brand text-lg">🛡️</span>
+      <!-- Main Content -->
+      <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex gap-8">
+          <!-- Filters Sidebar -->
+          <div id="filtersSidebar" class="hidden lg:block w-64 flex-shrink-0">
+            <div class="bg-white rounded-lg shadow-sm p-6 sticky top-24">
+              <h3 class="text-lg font-semibold text-navy mb-4">Filtros</h3>
+              
+              <!-- Location Filter -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación</label>
+                <select id="locationFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option value="">Toda Bolivia</option>
+                  <option value="la-paz">La Paz</option>
+                  <option value="santa-cruz">Santa Cruz</option>
+                  <option value="cochabamba">Cochabamba</option>
+                  <option value="sucre">Sucre</option>
+                </select>
+              </div>
+              
+              <!-- Price Range -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Rango de precios</label>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <input type="radio" name="price" value="" id="price-all" class="mr-2">
+                    <label for="price-all" class="text-sm">Cualquier precio</label>
                   </div>
-                  <div>
-                    <h4 class="font-bold text-navy mb-2">Profesionales Verificados</h4>
-                    <p class="text-gray-600">Todos nuestros profesionales están verificados</p>
+                  <div class="flex items-center">
+                    <input type="radio" name="price" value="0-100" id="price-1" class="mr-2">
+                    <label for="price-1" class="text-sm">Hasta 100 BOB</label>
                   </div>
-                </div>
-                <div class="flex items-start space-x-4">
-                  <div class="w-8 h-8 bg-brand/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                    <span class="text-brand text-lg">⭐</span>
+                  <div class="flex items-center">
+                    <input type="radio" name="price" value="100-250" id="price-2" class="mr-2">
+                    <label for="price-2" class="text-sm">100 - 250 BOB</label>
                   </div>
-                  <div>
-                    <h4 class="font-bold text-navy mb-2">Calidad Garantizada</h4>
-                    <p class="text-gray-600">Sistema de reseñas y calificaciones</p>
+                  <div class="flex items-center">
+                    <input type="radio" name="price" value="250-500" id="price-3" class="mr-2">
+                    <label for="price-3" class="text-sm">250 - 500 BOB</label>
                   </div>
-                </div>
-                <div class="flex items-start space-x-4">
-                  <div class="w-8 h-8 bg-brand/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                    <span class="text-brand text-lg">🏠</span>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-navy mb-2">Comodidad Total</h4>
-                    <p class="text-gray-600">Servicios profesionales en tu hogar</p>
+                  <div class="flex items-center">
+                    <input type="radio" name="price" value="500+" id="price-4" class="mr-2">
+                    <label for="price-4" class="text-sm">500+ BOB</label>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="text-center">
-              <div class="bg-gray-50 rounded-2xl p-8">
-                <div class="text-6xl mb-4">💄</div>
-                <h3 class="text-2xl font-bold text-navy mb-4">¡Únete hoy!</h3>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                  <div class="bg-white rounded-lg p-4">
-                    <div class="text-2xl font-bold text-brand">500+</div>
-                    <div class="text-sm text-gray-600">Profesionales</div>
+              
+              <!-- Service Type -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de servicio</label>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <input type="checkbox" id="home-service" class="mr-2">
+                    <label for="home-service" class="text-sm">A domicilio</label>
                   </div>
-                  <div class="bg-white rounded-lg p-4">
-                    <div class="text-2xl font-bold text-brand">2K+</div>
-                    <div class="text-sm text-gray-600">Clientes</div>
+                  <div class="flex items-center">
+                    <input type="checkbox" id="in-shop" class="mr-2">
+                    <label for="in-shop" class="text-sm">En local</label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Rating Filter -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Calificación mínima</label>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <input type="radio" name="rating" value="" id="rating-all" class="mr-2">
+                    <label for="rating-all" class="text-sm">Cualquier calificación</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input type="radio" name="rating" value="4" id="rating-4" class="mr-2">
+                    <label for="rating-4" class="text-sm flex items-center">
+                      4+ <span class="text-yellow-400 ml-1">★★★★☆</span>
+                    </label>
+                  </div>
+                  <div class="flex items-center">
+                    <input type="radio" name="rating" value="4.5" id="rating-45" class="mr-2">
+                    <label for="rating-45" class="text-sm flex items-center">
+                      4.5+ <span class="text-yellow-400 ml-1">★★★★★</span>
+                    </label>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <!-- CTA Section -->
-      <section class="py-16 bg-navy text-white">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-          <h2 class="text-3xl font-display mb-6">¿Listo para empezar?</h2>
-          <p class="text-xl mb-8 text-white/90">
-            Únete a la plataforma de belleza más confiable de Bolivia
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              id="ctaCustomerBtn"
-              class="bg-brand hover:bg-brand-hover text-kalos-white px-8 py-4 rounded-lg font-semibold transition-colors">
-              Buscar Servicios
-            </button>
-            <button 
-              id="ctaProfessionalBtn"
-              class="border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-lg font-semibold transition-colors">
-              Ofrecer Servicios
-            </button>
+          <!-- Results Area -->
+          <div class="flex-1">
+            <!-- Results Header -->
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h2 class="text-2xl font-bold text-navy">Profesionales Disponibles</h2>
+                <p id="resultsCount" class="text-gray-600 mt-1">Cargando profesionales...</p>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div class="animate-pulse">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                  <div class="h-32 bg-gray-200 rounded mb-4"></div>
+                  <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+              <div class="animate-pulse">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                  <div class="h-32 bg-gray-200 rounded mb-4"></div>
+                  <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+              <div class="animate-pulse">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                  <div class="h-32 bg-gray-200 rounded mb-4"></div>
+                  <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-16">
+              <svg class="w-24 h-24 text-gray-300 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <h3 class="text-xl font-semibold text-gray-600 mb-4">No encontramos profesionales</h3>
+              <p class="text-gray-500 mb-6">Intenta cambiar los filtros o buscar en otra ubicación</p>
+              <button id="clearFiltersBtn" class="bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors">
+                Limpiar Filtros
+              </button>
+            </div>
+
+            <!-- Professionals Grid -->
+            <div id="professionalsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <!-- Professionals will be populated here -->
+            </div>
+
+            <!-- Load More -->
+            <div id="loadMoreContainer" class="hidden text-center mt-8">
+              <button id="loadMoreBtn" class="bg-white text-brand border border-brand px-6 py-3 rounded-lg hover:bg-brand hover:text-white transition-colors">
+                Cargar Más Profesionales
+              </button>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   `;
   
   return renderWithLayout(content, {
-    title: 'Kalos - Servicios de Belleza a Domicilio en Bolivia',
+    title: 'Marketplace - Kalos',
     showHeader: true,
     showFooter: true
   });
 }
 
-export function initializeHomePage() {
+export function initializeMarketplacePage() {
   initializeLayout();
+  
+  let professionals = [];
+  let filteredProfessionals = [];
+  let currentFilters = {
+    search: '',
+    category: '',
+    location: '',
+    priceRange: '',
+    rating: '',
+    homeService: false,
+    inShop: false,
+    sortBy: 'rating'
+  };
+  let currentPage = 1;
+  const itemsPerPage = 12;
+  
+  // Initialize page
+  loadProfessionals();
+  setupEventListeners();
 
-  // Check if user is already authenticated
-  authService.waitForAuth().then(({ user, profile }) => {
-    // For demo mode, check localStorage
-    if (!user || !profile) {
-      if (import.meta.env.DEV) {
-        try {
-          const demoUser = localStorage.getItem('demoUser');
-          const demoProfile = localStorage.getItem('demoProfile');
-          
-          if (demoUser && demoProfile) {
-            user = JSON.parse(demoUser);
-            profile = JSON.parse(demoProfile);
-          }
-        } catch (error) {
-          console.error('Error loading demo user:', error);
-        }
-      }
-    }
-
-    if (user && profile) {
-      // User is logged in, update buttons accordingly
-      updateButtonsForAuthenticatedUser(profile);
+  async function loadProfessionals() {
+    try {
+      showLoadingState();
       
-      // Update header to show authenticated state
-      if (window.updateHeaderAuthState) {
-        console.log('🔄 Updating header from home page...');
-        window.updateHeaderAuthState();
+      // Load professionals from service
+      const result = await professionalService.searchProfessionals({
+        published: true,
+        verified: true
+      }, {
+        limit: 50 // Load more for client-side filtering
+      });
+      
+      if (result.success) {
+        professionals = result.data;
+        applyFilters();
+        renderProfessionals();
+      } else {
+        throw new Error(result.error);
       }
+      
+    } catch (error) {
+      console.error('Error loading professionals:', error);
+      showEmptyState();
+    } finally {
+      hideLoadingState();
     }
-  });
+  }
 
-  // Customer mode buttons
-  const customerModeBtn = document.getElementById('customerModeBtn');
-  const ctaCustomerBtn = document.getElementById('ctaCustomerBtn');
-  
-  [customerModeBtn, ctaCustomerBtn].forEach(btn => {
-    if (btn) {
-      btn.addEventListener('click', () => handleCustomerFlow());
+  function setupEventListeners() {
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    
+    searchBtn.addEventListener('click', handleSearch);
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSearch();
+    });
+    
+    // Quick filters (category buttons)
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // Update active state
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // Apply filter
+        currentFilters.category = e.target.dataset.category;
+        currentPage = 1;
+        applyFilters();
+        renderProfessionals();
+      });
+    });
+    
+    // Sort
+    document.getElementById('sortBy').addEventListener('change', (e) => {
+      currentFilters.sortBy = e.target.value;
+      applyFilters();
+      renderProfessionals();
+    });
+    
+    // Sidebar filters
+    document.getElementById('locationFilter').addEventListener('change', (e) => {
+      currentFilters.location = e.target.value;
+      applyFilters();
+      renderProfessionals();
+    });
+    
+    // Price filters
+    document.querySelectorAll('input[name="price"]').forEach(input => {
+      input.addEventListener('change', (e) => {
+        currentFilters.priceRange = e.target.value;
+        applyFilters();
+        renderProfessionals();
+      });
+    });
+    
+    // Rating filters
+    document.querySelectorAll('input[name="rating"]').forEach(input => {
+      input.addEventListener('change', (e) => {
+        currentFilters.rating = e.target.value;
+        applyFilters();
+        renderProfessionals();
+      });
+    });
+    
+    // Service type checkboxes
+    document.getElementById('home-service').addEventListener('change', (e) => {
+      currentFilters.homeService = e.target.checked;
+      applyFilters();
+      renderProfessionals();
+    });
+    
+    document.getElementById('in-shop').addEventListener('change', (e) => {
+      currentFilters.inShop = e.target.checked;
+      applyFilters();
+      renderProfessionals();
+    });
+    
+    // Clear filters
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearAllFilters);
+    
+    // Load more
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', loadMoreProfessionals);
     }
-  });
-
-  // Professional mode buttons  
-  const professionalModeBtn = document.getElementById('professionalModeBtn');
-  const ctaProfessionalBtn = document.getElementById('ctaProfessionalBtn');
-  
-  [professionalModeBtn, ctaProfessionalBtn].forEach(btn => {
-    if (btn) {
-      btn.addEventListener('click', () => handleProfessionalFlow());
-    }
-  });
-
-  // Login button
-  const loginBtn = document.getElementById('loginBtn');
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      navigateTo('/auth/login');
+    
+    // Filter toggle (mobile)
+    document.getElementById('filterToggle').addEventListener('click', () => {
+      const sidebar = document.getElementById('filtersSidebar');
+      sidebar.classList.toggle('hidden');
     });
   }
-}
 
-/**
- * Handle customer flow
- */
-function handleCustomerFlow() {
-  // Check if user is authenticated
-  authService.waitForAuth().then(({ user, profile }) => {
-    if (user && profile) {
-      // User is logged in, go directly to search
-      navigateTo('/buscar');
-    } else {
-      // User needs to register/login as customer
-      navigateTo('/auth/signup?mode=customer');
-    }
-  });
-}
+  function handleSearch() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    currentFilters.search = searchTerm;
+    currentPage = 1;
+    applyFilters();
+    renderProfessionals();
+  }
 
-/**
- * Handle professional flow
- */
-function handleProfessionalFlow() {
-  // Check if user is authenticated
-  authService.waitForAuth().then(({ user, profile }) => {
-    if (user && profile) {
-      // Check if user is already a professional
-      if (profile.availableRoles && profile.availableRoles.includes('professional')) {
-        navigateTo('/pro/dashboard');
-      } else {
-        // User needs to become a professional
-        navigateTo('/become-professional');
+  function applyFilters() {
+    filteredProfessionals = professionals.filter(professional => {
+      // Search filter
+      if (currentFilters.search) {
+        const searchTerm = currentFilters.search.toLowerCase();
+        const matchesSearch = 
+          professional.businessInfo?.businessName?.toLowerCase().includes(searchTerm) ||
+          professional.businessInfo?.description?.toLowerCase().includes(searchTerm) ||
+          professional.businessInfo?.categories?.some(cat => cat.toLowerCase().includes(searchTerm));
+        
+        if (!matchesSearch) return false;
       }
-    } else {
-      // User needs to register/login as professional
-      navigateTo('/auth/signup?mode=professional');
+      
+      // Category filter
+      if (currentFilters.category) {
+        if (!professional.businessInfo?.categories?.includes(currentFilters.category)) {
+          return false;
+        }
+      }
+      
+      // Location filter
+      if (currentFilters.location) {
+        const locationMatch = professional.location?.department?.toLowerCase().replace(' ', '-') === currentFilters.location;
+        if (!locationMatch) return false;
+      }
+      
+      // Rating filter
+      if (currentFilters.rating) {
+        const minRating = parseFloat(currentFilters.rating);
+        if ((professional.stats?.averageRating || 0) < minRating) return false;
+      }
+      
+      // Service type filters
+      if (currentFilters.homeService && !professional.location?.homeService) return false;
+      if (currentFilters.inShop && !professional.location?.inShop) return false;
+      
+      return true;
+    });
+    
+    // Apply sorting
+    switch (currentFilters.sortBy) {
+      case 'rating':
+        filteredProfessionals.sort((a, b) => (b.stats?.averageRating || 0) - (a.stats?.averageRating || 0));
+        break;
+      case 'price':
+        // This would need service price data - placeholder for now
+        break;
+      case 'distance':
+        // This would need location calculation - placeholder for now
+        break;
+      case 'recent':
+        filteredProfessionals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
     }
-  });
+  }
+
+  function renderProfessionals() {
+    const grid = document.getElementById('professionalsGrid');
+    const emptyState = document.getElementById('emptyState');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    // Update results count
+    resultsCount.textContent = `${filteredProfessionals.length} profesionales encontrados`;
+    
+    if (filteredProfessionals.length === 0) {
+      grid.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      loadMoreContainer.classList.add('hidden');
+      return;
+    }
+    
+    // Show grid
+    emptyState.classList.add('hidden');
+    grid.classList.remove('hidden');
+    
+    // Calculate pagination
+    const startIndex = 0;
+    const endIndex = currentPage * itemsPerPage;
+    const visibleProfessionals = filteredProfessionals.slice(startIndex, endIndex);
+    
+    // Render professionals
+    grid.innerHTML = '';
+    visibleProfessionals.forEach(professional => {
+      const card = createProfessionalCard(professional);
+      grid.appendChild(card);
+    });
+    
+    // Show/hide load more
+    if (endIndex < filteredProfessionals.length) {
+      loadMoreContainer.classList.remove('hidden');
+    } else {
+      loadMoreContainer.classList.add('hidden');
+    }
+  }
+
+  function createProfessionalCard(professional) {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden';
+    card.onclick = () => navigateTo(`/professionals/${professional.id}`);
+    
+    const businessName = professional.businessInfo?.businessName || 'Profesional';
+    const location = `${professional.location?.city || ''}, ${professional.location?.department || ''}`.replace(/^,\s*|,\s*$/g, '');
+    const rating = professional.stats?.averageRating || 0;
+    const reviewCount = professional.stats?.reviewCount || 0;
+    const categories = professional.businessInfo?.categories || [];
+    
+    const profileImage = professional.personalInfo?.profileImage || '/images/default-avatar.png';
+    
+    card.innerHTML = `
+      <div class="h-48 bg-gradient-to-br from-brand/20 to-deep-coral/20 relative">
+        ${profileImage !== '/images/default-avatar.png' ? 
+          `<img src="${profileImage}" alt="${businessName}" class="w-full h-full object-cover">` :
+          `<div class="w-full h-full flex items-center justify-center">
+             <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center">
+               <span class="text-2xl">💄</span>
+             </div>
+           </div>`
+        }
+        ${professional.verification?.verified ? 
+          '<div class="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">✓ Verificado</div>' : 
+          ''
+        }
+      </div>
+      
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-navy mb-1">${businessName}</h3>
+        <p class="text-gray-500 text-sm mb-3">${location}</p>
+        
+        <div class="flex items-center mb-3">
+          <div class="flex text-yellow-400 text-sm mr-2">
+            ${'★'.repeat(Math.floor(rating))}${'☆'.repeat(5 - Math.floor(rating))}
+          </div>
+          <span class="text-gray-600 text-sm">${rating.toFixed(1)} (${reviewCount})</span>
+        </div>
+        
+        <div class="flex flex-wrap gap-1 mb-4">
+          ${categories.slice(0, 3).map(category => 
+            `<span class="inline-block bg-brand/10 text-brand text-xs px-2 py-1 rounded">${getCategoryName(category)}</span>`
+          ).join('')}
+          ${categories.length > 3 ? `<span class="text-xs text-gray-500">+${categories.length - 3}</span>` : ''}
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            ${professional.location?.homeService ? '🏠 A domicilio' : ''}
+            ${professional.location?.homeService && professional.location?.inShop ? ' • ' : ''}
+            ${professional.location?.inShop ? '🏪 En local' : ''}
+          </div>
+          <button class="text-brand hover:text-brand-hover text-sm font-medium">
+            Ver perfil →
+          </button>
+        </div>
+      </div>
+    `;
+    
+    return card;
+  }
+
+  function loadMoreProfessionals() {
+    currentPage++;
+    renderProfessionals();
+  }
+
+  function clearAllFilters() {
+    // Reset filters
+    currentFilters = {
+      search: '',
+      category: '',
+      location: '',
+      priceRange: '',
+      rating: '',
+      homeService: false,
+      inShop: false,
+      sortBy: 'rating'
+    };
+    currentPage = 1;
+    
+    // Reset UI
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sortBy').value = 'rating';
+    document.getElementById('locationFilter').value = '';
+    document.querySelectorAll('input[name="price"]').forEach(input => input.checked = false);
+    document.querySelectorAll('input[name="rating"]').forEach(input => input.checked = false);
+    document.getElementById('home-service').checked = false;
+    document.getElementById('in-shop').checked = false;
+    
+    // Reset category buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.filter-btn[data-category=""]').classList.add('active');
+    
+    // Apply and render
+    applyFilters();
+    renderProfessionals();
+  }
+
+  function showLoadingState() {
+    document.getElementById('loadingState').classList.remove('hidden');
+    document.getElementById('professionalsGrid').classList.add('hidden');
+    document.getElementById('emptyState').classList.add('hidden');
+  }
+
+  function hideLoadingState() {
+    document.getElementById('loadingState').classList.add('hidden');
+  }
+
+  function showEmptyState() {
+    document.getElementById('emptyState').classList.remove('hidden');
+    document.getElementById('professionalsGrid').classList.add('hidden');
+    document.getElementById('loadMoreContainer').classList.add('hidden');
+  }
+
+  function getCategoryName(categoryKey) {
+    const categories = {
+      hair: 'Cabello',
+      nails: 'Uñas',  
+      makeup: 'Maquillaje',
+      skincare: 'Cuidado de piel',
+      massage: 'Masajes',
+      eyebrows: 'Cejas',
+      eyelashes: 'Pestañas'
+    };
+    
+    return categories[categoryKey] || categoryKey;
+  }
 }
 
-/**
- * Update buttons for authenticated users
- */
-function updateButtonsForAuthenticatedUser(profile) {
-  const customerModeBtn = document.getElementById('customerModeBtn');
-  const professionalModeBtn = document.getElementById('professionalModeBtn');
-  const loginBtn = document.getElementById('loginBtn');
-
-  if (customerModeBtn) {
-    customerModeBtn.querySelector('div:last-child').textContent = 'Ir a búsqueda';
-  }
-
-  if (professionalModeBtn) {
-    if (profile.availableRoles && profile.availableRoles.includes('professional')) {
-      professionalModeBtn.querySelector('div:last-child').textContent = 'Ir a dashboard';
-    } else {
-      professionalModeBtn.querySelector('div:last-child').textContent = 'Convertirse en pro';
-    }
-  }
-
-  if (loginBtn) {
-    loginBtn.textContent = 'Mi Cuenta';
-    loginBtn.onclick = () => navigateTo('/cuenta');
-  }
-}
-
-export default renderHomePage;
+export default renderMarketplacePage;

@@ -93,6 +93,11 @@ export function initializeAccountPage() {
       }
     }
 
+    console.log('👤 Account page - User:', user);
+    console.log('👤 Account page - Profile:', profile);
+    console.log('👤 Available roles:', profile.availableRoles);
+    console.log('👤 Active role:', profile.activeRole);
+    
     populateUserInfo(user, profile);
     populateRoleContent(profile.activeRole);
     setupRoleAdditionButtons(profile);
@@ -101,6 +106,15 @@ export function initializeAccountPage() {
     if (window.updateHeaderAuthState) {
       console.log('🔄 Updating header from account page...');
       window.updateHeaderAuthState();
+    } else {
+      console.warn('⚠️ updateHeaderAuthState function not found on window');
+      // Try to find and call it directly
+      setTimeout(() => {
+        if (window.updateHeaderAuthState) {
+          console.log('🔄 Retrying header update...');
+          window.updateHeaderAuthState();
+        }
+      }, 1000);
     }
   });
 
@@ -188,8 +202,11 @@ function populateUserInfo(user, profile) {
       el.style.cursor = 'pointer';
       el.title = `Cambiar rol (tienes ${availableRoles.join(', ')})`;
       el.addEventListener('click', () => {
+        console.log('🔄 Opening role switcher with roles:', availableRoles);
         showRoleSwitcher(availableRoles, activeRole);
       });
+    } else {
+      console.log('👤 User has only one role:', availableRoles);
     }
   });
 
@@ -342,8 +359,8 @@ function getCustomerContent() {
     <div class="mt-8">
       <h2 class="text-xl font-bold text-navy mb-4">Acciones Rápidas</h2>
       <div class="flex flex-wrap gap-4">
-        <button class="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover transition-colors" onclick="window.location.href='/buscar'">
-          Buscar Profesionales
+        <button class="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover transition-colors" onclick="window.location.href='/marketplace'">
+          Ir al Marketplace
         </button>
         <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">
           Ver Historial
@@ -464,14 +481,17 @@ function showRoleSwitcher(availableRoles, currentRole) {
  */
 function setupRoleAdditionButtons(profile) {
   const availableRoles = profile.availableRoles || [];
+  console.log('🔧 Setting up role addition buttons for roles:', availableRoles);
   
   // Setup add customer role button
   const addCustomerBtn = document.getElementById('addCustomerRole');
   if (addCustomerBtn) {
     if (availableRoles.includes('customer')) {
       addCustomerBtn.style.display = 'none';
+      console.log('🔧 Hiding customer button - user already has customer role');
     } else {
       addCustomerBtn.addEventListener('click', () => addRole('customer'));
+      console.log('🔧 Customer button enabled');
     }
   }
 
@@ -480,8 +500,10 @@ function setupRoleAdditionButtons(profile) {
   if (addProfessionalBtn) {
     if (availableRoles.includes('professional')) {
       addProfessionalBtn.style.display = 'none';
+      console.log('🔧 Hiding professional button - user already has professional role');
     } else {
       addProfessionalBtn.addEventListener('click', () => addRole('professional'));
+      console.log('🔧 Professional button enabled');
     }
   }
 }
@@ -490,11 +512,14 @@ function setupRoleAdditionButtons(profile) {
  * Add new role to user account
  */
 async function addRole(role) {
+  console.log('➕ Adding role:', role);
   const confirmed = confirm(`¿Estás seguro que quieres agregar el rol de ${role === 'professional' ? 'profesional' : 'cliente'} a tu cuenta?`);
   if (!confirmed) return;
 
   try {
+    console.log('➕ Calling authService.addRole...');
     const result = await authService.addRole(role);
+    console.log('➕ AddRole result:', result);
     if (result.success) {
       alert(`¡Rol ${role === 'professional' ? 'profesional' : 'cliente'} agregado exitosamente!`);
       window.location.reload();

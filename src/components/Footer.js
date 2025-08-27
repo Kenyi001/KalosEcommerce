@@ -30,25 +30,25 @@ export function renderFooter() {
             <h4 class="text-lg font-semibold mb-4">Servicios</h4>
             <ul class="space-y-2 text-gray-300">
               <li>
-                <button data-router-link data-href="/buscar?category=hair" 
+                <button data-router-link data-href="/marketplace?category=hair" 
                         class="hover:text-kalos-white transition-colors">
                   Peluquería
                 </button>
               </li>
               <li>
-                <button data-router-link data-href="/buscar?category=nails" 
+                <button data-router-link data-href="/marketplace?category=nails" 
                         class="hover:text-kalos-white transition-colors">
                   Manicure & Pedicure
                 </button>
               </li>
               <li>
-                <button data-router-link data-href="/buscar?category=makeup" 
+                <button data-router-link data-href="/marketplace?category=makeup" 
                         class="hover:text-kalos-white transition-colors">
                   Maquillaje
                 </button>
               </li>
               <li>
-                <button data-router-link data-href="/buscar?category=spa" 
+                <button data-router-link data-href="/marketplace?category=spa" 
                         class="hover:text-kalos-white transition-colors">
                   Tratamientos Spa
                 </button>
@@ -67,7 +67,7 @@ export function renderFooter() {
                 </button>
               </li>
               <li>
-                <button data-router-link data-href="/auth/signup?role=professional" 
+                <button data-router-link data-href="/auth/register?role=professional" 
                         class="hover:text-kalos-white transition-colors">
                   Únete como Profesional
                 </button>

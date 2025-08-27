@@ -44,6 +44,15 @@
   .form-input {
     @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand;
   }
+  
+  .filter-btn {
+    @apply px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 whitespace-nowrap;
+    @apply border-gray-300 text-gray-700 hover:border-brand hover:text-brand;
+  }
+  
+  .filter-btn.active {
+    @apply bg-brand text-white border-brand;
+  }
 }
 
 .spinner {

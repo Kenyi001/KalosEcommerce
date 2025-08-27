@@ -20,7 +20,7 @@ export function renderLoginPage() {
           <h2 class="text-2xl font-bold text-navy">Iniciar Sesión</h2>
           <p class="mt-2 text-sm text-gray-600">
             ¿No tienes cuenta? 
-            <a href="/auth/signup" data-router-link class="font-medium text-brand hover:text-brand-hover">
+            <a href="/auth/register" data-router-link class="font-medium text-brand hover:text-brand-hover">
               Crear cuenta
             </a>
           </p>

@@ -92,26 +92,31 @@ class ServicesService {
    */
   async getServicesByProfessional(professionalId, activeOnly = true) {
     try {
-      let servicesQuery = query(
+      // Simplified query to avoid composite index requirement
+      const servicesQuery = query(
         collection(db, 'services'),
-        where('professionalId', '==', professionalId),
-        orderBy('createdAt', 'desc')
+        where('professionalId', '==', professionalId)
       );
 
-      if (activeOnly) {
-        servicesQuery = query(
-          collection(db, 'services'),
-          where('professionalId', '==', professionalId),
-          where('status', '==', 'active'),
-          orderBy('createdAt', 'desc')
-        );
-      }
-
       const snapshot = await getDocs(servicesQuery);
-      return snapshot.docs.map(doc => ({
+      let services = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      // Filter and sort locally to avoid index requirement
+      if (activeOnly) {
+        services = services.filter(service => service.status === 'active');
+      }
+
+      // Sort by createdAt locally
+      services.sort((a, b) => {
+        const aDate = a.createdAt?.toDate?.() || new Date(a.createdAt);
+        const bDate = b.createdAt?.toDate?.() || new Date(b.createdAt);
+        return bDate - aDate; // Descending order
+      });
+
+      return services;
     } catch (error) {
       console.error('Error getting services by professional:', error);
       throw new Error(`Failed to get services: ${error.message}`);

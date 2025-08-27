@@ -5,6 +5,7 @@
 
 import { renderWithLayout, initializeLayout } from '../components/Layout.js';
 import { navigateTo } from '../utils/router.js';
+import { authService } from '../services/auth.js';
 
 export function renderLandingPage() {
   const content = `
@@ -268,14 +269,58 @@ export function renderLandingPage() {
 export function initializeLandingPage() {
   initializeLayout();
 
-  // Enter Platform button - goes to marketplace
+  // Check if user is logged in and redirect accordingly
+  authService.waitForAuth().then(({ user, profile }) => {
+    // For demo mode, check localStorage
+    if (!user || !profile) {
+      if (import.meta.env.DEV) {
+        try {
+          const demoUser = localStorage.getItem('demoUser');
+          const demoProfile = localStorage.getItem('demoProfile');
+          
+          if (demoUser && demoProfile) {
+            user = JSON.parse(demoUser);
+            profile = JSON.parse(demoProfile);
+          }
+        } catch (error) {
+          console.error('Error loading demo user:', error);
+        }
+      }
+    }
+
+    // If user is already authenticated, redirect to their appropriate home
+    if (user && profile) {
+      if (profile.activeRole === 'professional') {
+        console.log('🏠 Professional user on landing page, redirecting to dashboard...');
+        navigateTo('/pro/dashboard');
+        return;
+      } else {
+        console.log('🏠 Customer user on landing page, redirecting to marketplace...');
+        navigateTo('/marketplace');
+        return;
+      }
+    }
+  });
+
+  // Enter Platform button - smart redirect based on auth
   const enterPlatformBtn = document.getElementById('enterPlatformBtn');
   const finalCtaBtn = document.getElementById('finalCtaBtn');
   
   [enterPlatformBtn, finalCtaBtn].forEach(btn => {
     if (btn) {
       btn.addEventListener('click', () => {
-        navigateTo('/marketplace');
+        // Check current auth state for smart redirect
+        authService.waitForAuth().then(({ user, profile }) => {
+          if (user && profile) {
+            if (profile.activeRole === 'professional') {
+              navigateTo('/pro/dashboard');
+            } else {
+              navigateTo('/marketplace');
+            }
+          } else {
+            navigateTo('/marketplace'); // Default for non-authenticated
+          }
+        });
       });
     }
   });
@@ -284,7 +329,7 @@ export function initializeLandingPage() {
   const joinProBtn = document.getElementById('joinProBtn');
   if (joinProBtn) {
     joinProBtn.addEventListener('click', () => {
-      navigateTo('/auth/signup?role=professional');
+      navigateTo('/auth/register?role=professional');
     });
   }
 

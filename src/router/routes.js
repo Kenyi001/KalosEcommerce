@@ -19,6 +19,10 @@ import { renderProfessionalDashboardPage, initializeProfessionalDashboardPage } 
 import { renderProfessionalServicesPage, initializeProfessionalServicesPage } from '../pages/Professionals/Services.js';
 import { renderServiceFormPage, initializeServiceFormPage } from '../pages/Professionals/ServiceForm.js';
 
+// Landing and Marketplace imports
+import { renderLandingPage, initializeLandingPage } from '../pages/Landing.js';
+import { renderMarketplacePage, initializeMarketplacePage } from '../pages/Marketplace.js';
+
 // Import route handlers (will be implemented in later phases)
 // import { renderSearchPage } from '../pages/Search.js';
 
@@ -30,11 +34,21 @@ export const routes = [
   {
     path: '/',
     handler: () => {
-      document.getElementById('app').innerHTML = renderHomePage();
-      initializeHomePage();
+      document.getElementById('app').innerHTML = renderLandingPage();
+      initializeLandingPage();
     },
-    title: 'Kalos E-commerce - Belleza a Domicilio',
-    meta: { description: 'Marketplace de servicios de belleza a domicilio en Bolivia' }
+    title: 'Kalos - Belleza a Domicilio en Bolivia | Plataforma Líder',
+    meta: { description: 'La plataforma líder de servicios de belleza a domicilio en Bolivia. Conecta con profesionales verificados.' }
+  },
+
+  {
+    path: '/marketplace',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderMarketplacePage();
+      initializeMarketplacePage();
+    },
+    title: 'Marketplace - Kalos',
+    meta: { description: 'Encuentra profesionales de belleza verificados cerca de ti' }
   },
 
   // Search and browse
@@ -90,7 +104,7 @@ export const routes = [
   },
 
   {
-    path: '/auth/signup',
+    path: '/auth/register',
     handler: () => {
       document.getElementById('app').innerHTML = renderRegisterPage();
       initializeRegisterPage();

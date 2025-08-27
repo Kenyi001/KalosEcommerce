@@ -168,7 +168,37 @@ export class AuthService {
         console.log('✅ User profile created successfully');
       } else {
         console.log('✅ Existing user profile loaded');
+        
+        // Fix activeRole if it's undefined but user has availableRoles
+        if (!userProfile.activeRole && userProfile.availableRoles && userProfile.availableRoles.length > 0) {
+          console.log('🔧 Fixing missing activeRole for existing user');
+          const firstAvailableRole = userProfile.availableRoles[0];
+          
+          // Update local profile object immediately
+          userProfile.activeRole = firstAvailableRole;
+          userProfile.updatedAt = new Date();
+          
+          // Update in Firestore
+          try {
+            await updateDoc(doc(db, 'users', user.uid), {
+              activeRole: firstAvailableRole,
+              updatedAt: new Date()
+            });
+            console.log('✅ ActiveRole fixed to:', firstAvailableRole);
+            console.log('🔧 Updated profile object:', userProfile);
+          } catch (error) {
+            console.warn('Could not update activeRole in Firestore:', error);
+          }
+        }
       }
+      
+      // Update internal auth service state
+      this.currentUser = user;
+      this.currentUserProfile = userProfile;
+      this.isInitialized = true;
+      
+      // Notify listeners with the corrected profile
+      this.notifyListeners(user, userProfile);
       
       return {
         success: true,
@@ -469,6 +499,10 @@ export class AuthService {
    * Notify all auth state listeners
    */
   notifyListeners(user, profile) {
+    console.log(`🔔 Notifying ${this.authStateListeners.length} listeners`);
+    console.log('🔔 Notifying with user:', user?.email);
+    console.log('🔔 Notifying with profile roles:', profile?.availableRoles);
+    console.log('🔔 Notifying with profile activeRole:', profile?.activeRole);
     this.authStateListeners.forEach(callback => callback(user, profile));
   }
 
@@ -607,15 +641,30 @@ export class AuthService {
     }
 
     try {
-      // Update active role in Firestore
-      const userRef = doc(db, 'users', this.currentUser.uid);
-      await updateDoc(userRef, {
+      const updateData = {
         activeRole: newRole,
         updatedAt: new Date()
-      });
+      };
 
-      // Update local profile
+      // Always save to Firestore first (for persistence), then localStorage for demo mode
+      console.log('🎭 Saving role switch to Firestore...');
+      try {
+        const userRef = doc(db, 'users', this.currentUser.uid);
+        await updateDoc(userRef, updateData);
+        console.log('🎭 Successfully saved role switch to Firestore');
+      } catch (firestoreError) {
+        console.warn('⚠️ Failed to save role switch to Firestore, continuing with localStorage only:', firestoreError.message);
+      }
+
+      // Update local profile regardless of Firestore success
       this.currentUserProfile.activeRole = newRole;
+      this.currentUserProfile.updatedAt = updateData.updatedAt;
+      
+      // Always update localStorage in development mode for immediate reflection
+      if (import.meta.env.DEV) {
+        localStorage.setItem('demoProfile', JSON.stringify(this.currentUserProfile));
+        console.log('🎭 Role switch saved to localStorage');
+      }
       
       // Notify listeners of role change
       this.notifyListeners(this.currentUser, this.currentUserProfile);
@@ -653,7 +702,6 @@ export class AuthService {
     }
 
     try {
-      const userRef = doc(db, 'users', this.currentUser.uid);
       const updateData = {
         availableRoles: [...availableRoles, newRole],
         updatedAt: new Date()
@@ -678,9 +726,21 @@ export class AuthService {
         };
       }
 
-      await updateDoc(userRef, updateData);
+      // Always save to Firestore first (for persistence), then localStorage for demo mode
+      console.log('💾 Saving role update to Firestore...');
+      try {
+        const userRef = doc(db, 'users', this.currentUser.uid);
+        await updateDoc(userRef, updateData);
+        console.log('💾 Successfully saved to Firestore');
+      } catch (firestoreError) {
+        console.warn('⚠️ Failed to save to Firestore, continuing with localStorage only:', firestoreError.message);
+      }
 
-      // Update local profile
+      // Update local profile regardless of Firestore success
+      console.log('🎭 Updating local profile...');
+      console.log('🎭 Before update - availableRoles:', this.currentUserProfile.availableRoles);
+      console.log('🎭 Before update - activeRole:', this.currentUserProfile.activeRole);
+      
       this.currentUserProfile.availableRoles = updateData.availableRoles;
       if (updateData.professionalProfile) {
         this.currentUserProfile.professionalProfile = updateData.professionalProfile;
@@ -688,8 +748,25 @@ export class AuthService {
       if (updateData.customerProfile) {
         this.currentUserProfile.customerProfile = updateData.customerProfile;
       }
+      this.currentUserProfile.updatedAt = updateData.updatedAt;
+      
+      // If no activeRole set, set it to the first available role
+      if (!this.currentUserProfile.activeRole && updateData.availableRoles.length > 0) {
+        this.currentUserProfile.activeRole = updateData.availableRoles[0];
+        console.log('🎭 Set activeRole to first available:', this.currentUserProfile.activeRole);
+      }
+      
+      console.log('🎭 After update - availableRoles:', this.currentUserProfile.availableRoles);
+      console.log('🎭 After update - activeRole:', this.currentUserProfile.activeRole);
+      
+      // Always update localStorage in development mode for immediate reflection
+      if (import.meta.env.DEV) {
+        localStorage.setItem('demoProfile', JSON.stringify(this.currentUserProfile));
+        console.log('🎭 Updated profile saved to localStorage');
+      }
 
       // Notify listeners
+      console.log('🎭 Notifying listeners with updated profile...');
       this.notifyListeners(this.currentUser, this.currentUserProfile);
 
       return {
