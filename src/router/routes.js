@@ -12,9 +12,15 @@ import { renderForgotPasswordPage, initializeForgotPasswordPage } from '../pages
 import { renderAccountPage, initializeAccountPage } from '../pages/Account.js';
 import { requireAuth, requireGuest, requireCustomer, requireProfessional, requireCustomerOrProfessional } from '../utils/auth-guards.js';
 
+// Professional management imports
+import { renderProfessionalCreatePage, initializeProfessionalCreatePage } from '../pages/Professionals/Create.js';
+import { renderProfessionalDetailPage, initializeProfessionalDetailPage } from '../pages/Professionals/Detail.js';
+import { renderProfessionalDashboardPage, initializeProfessionalDashboardPage } from '../pages/Professionals/Dashboard.js';
+import { renderProfessionalServicesPage, initializeProfessionalServicesPage } from '../pages/Professionals/Services.js';
+import { renderServiceFormPage, initializeServiceFormPage } from '../pages/Professionals/ServiceForm.js';
+
 // Import route handlers (will be implemented in later phases)
 // import { renderSearchPage } from '../pages/Search.js';
-// import { renderProfessionalProfile } from '../pages/ProfessionalProfile.js';
 
 /**
  * Route definitions following the Project Chapter specifications
@@ -138,54 +144,72 @@ export const routes = [
   {
     path: '/pro/dashboard',
     handler: () => {
-      // TODO: Implement in Phase 2
-      document.getElementById('app').innerHTML = `
-        <div class="min-h-screen bg-gray-50 py-8">
-          <div class="max-w-6xl mx-auto px-4">
-            <div class="bg-white rounded-lg shadow p-8">
-              <h1 class="text-3xl font-display font-bold text-navy mb-4">Dashboard Profesional</h1>
-              <p class="text-gray-600 mb-6">Panel de control para profesionales - En desarrollo</p>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-50 rounded-lg p-6">
-                  <h3 class="text-lg font-semibold text-navy mb-2">Mi Perfil</h3>
-                  <p class="text-gray-600 text-sm">Gestionar información profesional</p>
-                </div>
-                <div class="bg-gray-50 rounded-lg p-6">
-                  <h3 class="text-lg font-semibold text-navy mb-2">Mis Servicios</h3>
-                  <p class="text-gray-600 text-sm">Administrar servicios ofrecidos</p>
-                </div>
-                <div class="bg-gray-50 rounded-lg p-6">
-                  <h3 class="text-lg font-semibold text-navy mb-2">Reservas</h3>
-                  <p class="text-gray-600 text-sm">Próximamente en Fase 3</p>
-                </div>
-              </div>
-              <div class="mt-6">
-                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
-                  Cerrar Sesión
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Add logout functionality
-      setTimeout(() => {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', async () => {
-            const { authState } = await import('../utils/auth-state.js');
-            const success = await authState.logout();
-            if (success) {
-              const { navigateTo } = await import('../utils/router.js');
-              navigateTo('/');
-            }
-          });
-        }
-      }, 100);
+      document.getElementById('app').innerHTML = renderProfessionalDashboardPage();
+      initializeProfessionalDashboardPage();
     },
     guards: [requireProfessional],
-    title: 'Dashboard - Kalos Pro'
+    title: 'Dashboard Profesional - Kalos'
+  },
+
+  {
+    path: '/pro/profile/create',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderProfessionalCreatePage();
+      initializeProfessionalCreatePage();
+    },
+    guards: import.meta.env.DEV ? [] : [requireProfessional],
+    title: 'Crear Perfil Profesional - Kalos'
+  },
+
+  {
+    path: '/pro/profile/edit',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderProfessionalCreatePage();
+      initializeProfessionalCreatePage();
+    },
+    guards: import.meta.env.DEV ? [] : [requireProfessional],
+    title: 'Editar Perfil Profesional - Kalos'
+  },
+
+  {
+    path: '/pro/services',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderProfessionalServicesPage();
+      initializeProfessionalServicesPage();
+    },
+    guards: import.meta.env.DEV ? [] : [requireProfessional],
+    title: 'Mis Servicios - Kalos'
+  },
+
+  {
+    path: '/pro/services/new',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderServiceFormPage();
+      initializeServiceFormPage();
+    },
+    guards: import.meta.env.DEV ? [] : [requireProfessional],
+    title: 'Nuevo Servicio - Kalos'
+  },
+
+  {
+    path: '/pro/services/edit/:id',
+    handler: (path) => {
+      const serviceId = path.split('/')[4];
+      document.getElementById('app').innerHTML = renderServiceFormPage(serviceId);
+      initializeServiceFormPage(serviceId);
+    },
+    guards: import.meta.env.DEV ? [] : [requireProfessional],
+    title: 'Editar Servicio - Kalos'
+  },
+
+  {
+    path: '/professionals/:id',
+    handler: (path) => {
+      const professionalId = path.split('/')[2];
+      document.getElementById('app').innerHTML = renderProfessionalDetailPage(professionalId);
+      initializeProfessionalDetailPage(professionalId);
+    },
+    title: 'Perfil Profesional - Kalos'
   },
 
   // Legal pages
