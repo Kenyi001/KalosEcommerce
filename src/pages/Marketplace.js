@@ -8,6 +8,9 @@ import { professionalService } from '../services/professionals.js';
 import { authService } from '../services/auth.js';
 import { navigateTo } from '../utils/router.js';
 import { ProfessionalCard } from '../components/professionals/ProfessionalCard.js';
+import SearchService from '../services/SearchService.js';
+import SearchBar from '../components/search/SearchBar.js';
+import SearchFilters from '../components/search/SearchFilters.js';
 
 export function renderMarketplacePage() {
   const content = `
@@ -24,19 +27,7 @@ export function renderMarketplacePage() {
           
           <!-- Search Bar -->
           <div class="max-w-2xl mx-auto">
-            <div class="relative">
-              <input
-                type="text"
-                id="searchInput"
-                placeholder="¿Qué servicio necesitas? (ej: corte, manicure, maquillaje)"
-                class="w-full px-6 py-4 rounded-full text-gray-900 text-lg focus:outline-none focus:ring-4 focus:ring-white/30 shadow-lg"
-              />
-              <button id="searchBtn" class="absolute right-2 top-2 bg-brand text-white px-6 py-2 rounded-full hover:bg-brand-hover transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-              </button>
-            </div>
+            <div id="searchBarContainer"></div>
           </div>
         </div>
       </section>
@@ -85,86 +76,7 @@ export function renderMarketplacePage() {
         <div class="flex gap-8">
           <!-- Filters Sidebar -->
           <div id="filtersSidebar" class="hidden lg:block w-64 flex-shrink-0">
-            <div class="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h3 class="text-lg font-semibold text-navy mb-4">Filtros</h3>
-              
-              <!-- Location Filter -->
-              <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Ubicación</label>
-                <select id="locationFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option value="">Toda Bolivia</option>
-                  <option value="la-paz">La Paz</option>
-                  <option value="santa-cruz">Santa Cruz</option>
-                  <option value="cochabamba">Cochabamba</option>
-                  <option value="sucre">Sucre</option>
-                </select>
-              </div>
-              
-              <!-- Price Range -->
-              <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Rango de precios</label>
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <input type="radio" name="price" value="" id="price-all" class="mr-2">
-                    <label for="price-all" class="text-sm">Cualquier precio</label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="radio" name="price" value="0-100" id="price-1" class="mr-2">
-                    <label for="price-1" class="text-sm">Hasta 100 BOB</label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="radio" name="price" value="100-250" id="price-2" class="mr-2">
-                    <label for="price-2" class="text-sm">100 - 250 BOB</label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="radio" name="price" value="250-500" id="price-3" class="mr-2">
-                    <label for="price-3" class="text-sm">250 - 500 BOB</label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="radio" name="price" value="500+" id="price-4" class="mr-2">
-                    <label for="price-4" class="text-sm">500+ BOB</label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Service Type -->
-              <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de servicio</label>
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <input type="checkbox" id="home-service" class="mr-2">
-                    <label for="home-service" class="text-sm">A domicilio</label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="checkbox" id="in-shop" class="mr-2">
-                    <label for="in-shop" class="text-sm">En local</label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Rating Filter -->
-              <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Calificación mínima</label>
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <input type="radio" name="rating" value="" id="rating-all" class="mr-2">
-                    <label for="rating-all" class="text-sm">Cualquier calificación</label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="radio" name="rating" value="4" id="rating-4" class="mr-2">
-                    <label for="rating-4" class="text-sm flex items-center">
-                      4+ <span class="text-yellow-400 ml-1">★★★★☆</span>
-                    </label>
-                  </div>
-                  <div class="flex items-center">
-                    <input type="radio" name="rating" value="4.5" id="rating-45" class="mr-2">
-                    <label for="rating-45" class="text-sm flex items-center">
-                      4.5+ <span class="text-yellow-400 ml-1">★★★★★</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="searchFiltersContainer" class="sticky top-24"></div>
           </div>
 
           <!-- Results Area -->
@@ -243,6 +155,8 @@ export function initializeMarketplacePage() {
   
   let professionals = [];
   let filteredProfessionals = [];
+  let searchBar = null;
+  let searchFilters = null;
   let currentFilters = {
     search: '',
     category: '',
@@ -258,6 +172,7 @@ export function initializeMarketplacePage() {
   
   // Initialize page
   loadProfessionals();
+  initializeSearchComponents();
   setupEventListeners();
 
   async function loadProfessionals() {
@@ -315,7 +230,7 @@ export function initializeMarketplacePage() {
       }
       
       window.loadedProfessionals = professionals; // Store globally for filtering
-      applyFilters();
+      filteredProfessionals = professionals; // Initialize filtered list
       renderProfessionals();
       
     } catch (error) {
@@ -326,78 +241,168 @@ export function initializeMarketplacePage() {
     }
   }
 
+  function initializeSearchComponents() {
+    // Initialize SearchBar
+    const searchBarContainer = document.getElementById('searchBarContainer');
+    if (searchBarContainer) {
+      searchBar = new SearchBar(searchBarContainer, {
+        placeholder: '¿Qué servicio necesitas? (ej: corte, manicure, maquillaje)',
+        onSearch: performSearch,
+        onSuggestionSelect: (query, suggestion) => {
+          console.log('Suggestion selected:', query, suggestion);
+          performSearch(query);
+        }
+      });
+    }
+
+    // Initialize SearchFilters
+    const filtersContainer = document.getElementById('searchFiltersContainer');
+    if (filtersContainer) {
+      searchFilters = new SearchFilters(filtersContainer, {
+        onFiltersChange: applySearchFilters,
+        defaultFilters: {}
+      });
+    }
+  }
+
+  async function performSearch(query) {
+    if (!query) {
+      // If no query, show all professionals
+      filteredProfessionals = professionals;
+      renderProfessionals();
+      return;
+    }
+
+    try {
+      showLoadingState();
+      
+      // Track search analytics
+      SearchService.trackSearch(query);
+      
+      // Perform search using SearchService
+      const searchOptions = {
+        location: currentFilters.location?.coordinates ? {
+          lat: currentFilters.location.coordinates.lat,
+          lng: currentFilters.location.coordinates.lng,
+          radius: currentFilters.location.radius || 10
+        } : null,
+        limit: 50
+      };
+
+      const searchResults = await SearchService.search(query, getSearchFilters(), searchOptions);
+      
+      if (searchResults.results) {
+        filteredProfessionals = searchResults.results;
+        currentPage = 1;
+        renderProfessionals();
+        
+        // Update results count with search context
+        const resultsCount = document.getElementById('resultsCount');
+        if (resultsCount) {
+          resultsCount.textContent = `${searchResults.results.length} profesionales encontrados para "${query}"`;
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error performing search:', error);
+      showEmptyState();
+    } finally {
+      hideLoadingState();
+    }
+  }
+
+  function getSearchFilters() {
+    return {
+      categories: currentFilters.category ? [currentFilters.category] : [],
+      priceRange: currentFilters.priceRange ? parsePriceRange(currentFilters.priceRange) : {},
+      rating: currentFilters.rating ? parseFloat(currentFilters.rating) : null,
+      location: currentFilters.location,
+      availability: {
+        date: null,
+        timeSlots: []
+      }
+    };
+  }
+
+  function parsePriceRange(rangeStr) {
+    if (!rangeStr) return {};
+    
+    if (rangeStr === '500+') {
+      return { min: 500 };
+    }
+    
+    const [min, max] = rangeStr.split('-').map(Number);
+    return { min, max };
+  }
+
+  function applySearchFilters(filters) {
+    console.log('Applying search filters:', filters);
+    
+    // Update current filters from SearchFilters component
+    currentFilters = {
+      ...currentFilters,
+      category: filters.categories.length > 0 ? filters.categories[0] : '',
+      priceRange: filters.priceRange,
+      rating: filters.rating,
+      location: filters.location,
+      homeService: filters.availability?.timeSlots?.includes('home') || false,
+      inShop: filters.availability?.timeSlots?.includes('shop') || false,
+      sortBy: filters.sortBy || 'relevance'
+    };
+    
+    // Perform new search with updated filters
+    const currentQuery = searchBar ? searchBar.getValue() : '';
+    if (currentQuery) {
+      performSearch(currentQuery);
+    } else {
+      // Apply filters to current professionals list
+      applyFilters();
+      renderProfessionals();
+    }
+  }
+
   function setupEventListeners() {
-    // Search
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
+    // Legacy search elements no longer exist, search is handled by SearchBar component
     
-    searchBtn.addEventListener('click', handleSearch);
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleSearch();
-    });
-    
-    // Quick filters (category buttons)
+    // Quick filters (category buttons) - these still exist in the UI
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         // Update active state
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         
-        // Apply filter
+        // Apply filter - update search filters if available
         currentFilters.category = e.target.dataset.category;
         currentPage = 1;
-        applyFilters();
-        renderProfessionals();
+        
+        if (searchFilters) {
+          // Update SearchFilters component
+          const newFilters = searchFilters.getFilters();
+          newFilters.categories = e.target.dataset.category ? [e.target.dataset.category] : [];
+          searchFilters.setFilters(newFilters);
+        } else {
+          // Fallback to old filtering
+          applyFilters();
+          renderProfessionals();
+        }
       });
     });
     
-    // Sort
-    document.getElementById('sortBy').addEventListener('change', (e) => {
-      currentFilters.sortBy = e.target.value;
-      applyFilters();
-      renderProfessionals();
-    });
-    
-    // Sidebar filters
-    document.getElementById('locationFilter').addEventListener('change', (e) => {
-      currentFilters.location = e.target.value;
-      applyFilters();
-      renderProfessionals();
-    });
-    
-    // Price filters
-    document.querySelectorAll('input[name="price"]').forEach(input => {
-      input.addEventListener('change', (e) => {
-        currentFilters.priceRange = e.target.value;
-        applyFilters();
-        renderProfessionals();
+    // Sort dropdown
+    const sortSelect = document.getElementById('sortBy');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', (e) => {
+        currentFilters.sortBy = e.target.value;
+        if (searchFilters) {
+          const newFilters = searchFilters.getFilters();
+          newFilters.sortBy = e.target.value;
+          searchFilters.setFilters(newFilters);
+        } else {
+          applyFilters();
+          renderProfessionals();
+        }
       });
-    });
-    
-    // Rating filters
-    document.querySelectorAll('input[name="rating"]').forEach(input => {
-      input.addEventListener('change', (e) => {
-        currentFilters.rating = e.target.value;
-        applyFilters();
-        renderProfessionals();
-      });
-    });
-    
-    // Service type checkboxes
-    document.getElementById('home-service').addEventListener('change', (e) => {
-      currentFilters.homeService = e.target.checked;
-      applyFilters();
-      renderProfessionals();
-    });
-    
-    document.getElementById('in-shop').addEventListener('change', (e) => {
-      currentFilters.inShop = e.target.checked;
-      applyFilters();
-      renderProfessionals();
-    });
-    
-    // Clear filters
-    document.getElementById('clearFiltersBtn').addEventListener('click', clearAllFilters);
+    }
     
     // Load more
     const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -406,10 +411,15 @@ export function initializeMarketplacePage() {
     }
     
     // Filter toggle (mobile)
-    document.getElementById('filterToggle').addEventListener('click', () => {
-      const sidebar = document.getElementById('filtersSidebar');
-      sidebar.classList.toggle('hidden');
-    });
+    const filterToggle = document.getElementById('filterToggle');
+    if (filterToggle) {
+      filterToggle.addEventListener('click', () => {
+        const sidebar = document.getElementById('filtersSidebar');
+        if (sidebar) {
+          sidebar.classList.toggle('hidden');
+        }
+      });
+    }
     
     // Nueva Reserva button
     const newBookingBtn = document.getElementById('newBookingBtn');
@@ -423,13 +433,7 @@ export function initializeMarketplacePage() {
     checkUserRoleAndShowButtons();
   }
 
-  function handleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.trim();
-    currentFilters.search = searchTerm;
-    currentPage = 1;
-    applyFilters();
-    renderProfessionals();
-  }
+  // handleSearch removed - handled by SearchBar component
 
   function applyFilters() {
     filteredProfessionals = professionals.filter(professional => {
@@ -609,18 +613,37 @@ export function initializeMarketplacePage() {
     };
     currentPage = 1;
     
-    // Reset UI
-    document.getElementById('searchInput').value = '';
-    document.getElementById('sortBy').value = 'rating';
-    document.getElementById('locationFilter').value = '';
-    document.querySelectorAll('input[name="price"]').forEach(input => input.checked = false);
-    document.querySelectorAll('input[name="rating"]').forEach(input => input.checked = false);
-    document.getElementById('home-service').checked = false;
-    document.getElementById('in-shop').checked = false;
+    // Reset SearchBar and SearchFilters components
+    if (searchBar) {
+      searchBar.setValue('');
+    }
+    
+    if (searchFilters) {
+      searchFilters.setFilters({
+        categories: [],
+        priceRange: { min: null, max: null },
+        rating: null,
+        location: {
+          radius: null,
+          coordinates: null,
+          city: null
+        },
+        availability: {
+          date: null,
+          timeSlots: []
+        },
+        sortBy: 'relevance'
+      });
+    }
+    
+    // Reset UI elements that still exist
+    const sortBy = document.getElementById('sortBy');
+    if (sortBy) sortBy.value = 'rating';
     
     // Reset category buttons
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector('.filter-btn[data-category=""]').classList.add('active');
+    const allCategoryBtn = document.querySelector('.filter-btn[data-category=""]');
+    if (allCategoryBtn) allCategoryBtn.classList.add('active');
     
     // Apply and render
     applyFilters();

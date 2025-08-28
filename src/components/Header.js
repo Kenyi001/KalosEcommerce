@@ -299,6 +299,10 @@ export function initializeHeader() {
       }, 100);
     });
   }
+  
+  // Make functions available globally for debugging
+  window.forceHeaderUpdate = updateHeaderAuthState;
+  window.initializeHeader = initializeHeader;
 }
 
 /**

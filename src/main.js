@@ -36,6 +36,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🗺️ Router initialized');
     
     console.log('✅ Kalos E-commerce initialized successfully');
+    
+    // Development debug helpers
+    if (import.meta.env.DEV) {
+      console.log('🛠️  Debug helpers available:');
+      console.log('   - debugSearch(): Check demo professionals data');
+      console.log('   - forceHeaderUpdate(): Force header authentication update');
+      console.log('   - initializeHeader(): Reinitialize header');
+    }
   } catch (error) {
     console.error('❌ Failed to initialize Kalos E-commerce:', error);
     

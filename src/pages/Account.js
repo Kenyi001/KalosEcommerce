@@ -66,9 +66,17 @@ export function renderAccountPage() {
  * Initialize account dashboard page functionality
  */
 export function initializeAccountPage() {
+  console.log('🚀 Initializing Account page');
+  
   const logoutBtn = document.getElementById('logoutBtn');
   const updateProfileBtn = document.getElementById('updateProfileBtn');
   const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+  // Force header update when account page loads
+  if (window.initializeHeader) {
+    console.log('🔄 Forcing header update from Account page');
+    window.initializeHeader();
+  }
 
   // Wait for auth and populate user info
   authService.waitForAuth().then(({ user, profile }) => {
