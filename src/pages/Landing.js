@@ -288,17 +288,13 @@ export function initializeLandingPage() {
       }
     }
 
-    // If user is already authenticated, redirect to their appropriate home
+    // No auto-redirect when authenticated; let user choose via CTA
     if (user && profile) {
-      if (profile.activeRole === 'professional') {
-        console.log('🏠 Professional user on landing page, redirecting to dashboard...');
-        navigateTo('/pro/dashboard');
-        return;
-      } else {
-        console.log('🏠 Customer user on landing page, redirecting to marketplace...');
-        navigateTo('/marketplace');
-        return;
-      }
+      console.log('🏠 Authenticated user on landing page:', { 
+        role: profile.activeRole,
+        name: profile.displayName || user.email 
+      });
+      // User can navigate manually via CTAs
     }
   });
 
