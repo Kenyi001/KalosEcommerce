@@ -73,10 +73,9 @@ export function initializeAccountPage() {
   const changePasswordBtn = document.getElementById('changePasswordBtn');
 
   // Force header update when account page loads
-  if (window.initializeHeader) {
-    console.log('🔄 Forcing header update from Account page');
-    window.initializeHeader();
-  }
+  setTimeout(() => {
+    forceHeaderUpdate();
+  }, 100);
 
   // Wait for auth and populate user info
   authService.waitForAuth().then(({ user, profile }) => {
@@ -112,19 +111,7 @@ export function initializeAccountPage() {
     setupRoleAdditionButtons(profile);
     
     // Update header to show authenticated state
-    if (window.updateHeaderAuthState) {
-      console.log('🔄 Updating header from account page...');
-      window.updateHeaderAuthState();
-    } else {
-      console.warn('⚠️ updateHeaderAuthState function not found on window');
-      // Try to find and call it directly
-      setTimeout(() => {
-        if (window.updateHeaderAuthState) {
-          console.log('🔄 Retrying header update...');
-          window.updateHeaderAuthState();
-        }
-      }, 1000);
-    }
+    forceHeaderUpdate();
   });
 
   // Logout functionality
@@ -726,5 +713,75 @@ async function addRole(role) {
   } catch (error) {
     console.error('Add role error:', error);
     alert('Error inesperado al agregar rol');
+  }
+}
+
+/**
+ * Force header update with multiple fallback strategies
+ */
+function forceHeaderUpdate() {
+  console.log('🔄 Force updating header auth state...');
+  
+  // Strategy 1: Try direct window function
+  if (window.updateHeaderAuthState) {
+    console.log('✅ Using window.updateHeaderAuthState');
+    window.updateHeaderAuthState();
+    return;
+  }
+  
+  // Strategy 2: Try forceHeaderUpdate function
+  if (window.forceHeaderUpdate) {
+    console.log('✅ Using window.forceHeaderUpdate');
+    window.forceHeaderUpdate();
+    return;
+  }
+  
+  // Strategy 3: Try re-initializing header
+  if (window.initializeHeader) {
+    console.log('✅ Re-initializing header');
+    window.initializeHeader();
+    return;
+  }
+  
+  // Strategy 4: Direct DOM manipulation as fallback
+  console.log('🔧 Using direct DOM manipulation fallback');
+  try {
+    const guestButtons = document.getElementById('guest-buttons');
+    const userButtons = document.getElementById('user-buttons');
+    
+    if (guestButtons && userButtons) {
+      // Hide guest buttons, show user buttons
+      guestButtons.style.display = 'none';
+      userButtons.style.display = 'flex';
+      
+      // Update user info if elements exist
+      const userAvatar = document.getElementById('user-avatar');
+      const userName = document.getElementById('user-name');
+      
+      if (userAvatar && userName) {
+        // Get current user data
+        authService.waitForAuth().then(({ user, profile }) => {
+          if (user && profile) {
+            const initials = getInitials(profile.displayName || user.email);
+            userAvatar.textContent = initials;
+            userName.textContent = profile.displayName || user.email.split('@')[0];
+          }
+        });
+      }
+      
+      console.log('✅ Header updated via DOM manipulation');
+    } else {
+      console.warn('⚠️ Could not find header auth elements');
+    }
+  } catch (error) {
+    console.error('❌ Error in DOM manipulation fallback:', error);
+    
+    // Strategy 5: Retry with delay as last resort
+    console.log('⏳ Retrying header update in 500ms...');
+    setTimeout(() => {
+      if (window.updateHeaderAuthState) {
+        window.updateHeaderAuthState();
+      }
+    }, 500);
   }
 }

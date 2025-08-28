@@ -112,6 +112,15 @@ export function initializeBookingConfirmationPage(bookingId) {
   
   // Load booking details if needed
   loadBookingDetails(bookingId);
+  
+  // Force header update to show authenticated state
+  setTimeout(() => {
+    if (window.updateHeaderAuthState) {
+      window.updateHeaderAuthState();
+    } else if (window.forceHeaderUpdate) {
+      window.forceHeaderUpdate();
+    }
+  }, 200);
 }
 
 async function loadBookingDetails(bookingId) {
