@@ -86,7 +86,7 @@ export class BookingService {
         status: 'pending',
         statusHistory: [{
           status: 'pending',
-          timestamp: serverTimestamp(),
+          timestamp: new Date(),
           note: 'Reserva creada',
           actor: bookingData.customerId
         }],
@@ -152,21 +152,39 @@ export class BookingService {
     try {
       console.log('🔍 Checking availability:', { professionalId, date, time, duration });
 
-      // Get professional's availability for the date
-      const availabilityQuery = query(
-        collection(db, this.availabilityCollection),
-        where('professionalId', '==', professionalId),
-        where('date', '==', date)
-      );
+      let availability = null;
 
-      const snapshot = await getDocs(availabilityQuery);
-      
-      if (snapshot.empty) {
-        console.log('❌ No availability document found for this date');
-        return false;
+      // In development mode, check localStorage first
+      if (import.meta.env.DEV) {
+        try {
+          const demoAvailability = localStorage.getItem('demoAvailability');
+          if (demoAvailability) {
+            const availabilityData = JSON.parse(demoAvailability);
+            availability = availabilityData[professionalId]?.[date];
+            console.log('🔍 Using demo availability data');
+          }
+        } catch (error) {
+          console.warn('⚠️ Error reading demo availability:', error);
+        }
       }
 
-      const availability = snapshot.docs[0].data();
+      // Fallback to Firebase if no demo data
+      if (!availability) {
+        const availabilityQuery = query(
+          collection(db, this.availabilityCollection),
+          where('professionalId', '==', professionalId),
+          where('date', '==', date)
+        );
+
+        const snapshot = await getDocs(availabilityQuery);
+        
+        if (snapshot.empty) {
+          console.log('❌ No availability document found for this date');
+          return false;
+        }
+
+        availability = snapshot.docs[0].data();
+      }
       
       // Check if it's a working day
       if (!availability.isWorkingDay) {
@@ -277,7 +295,7 @@ export class BookingService {
 
       const newStatusEntry = {
         status: 'confirmed',
-        timestamp: serverTimestamp(),
+        timestamp: new Date(),
         note: `Confirmado por ${confirmedBy === 'professional' ? 'profesional' : confirmedBy}`,
         actor: confirmedBy,
         confirmedBy
@@ -324,14 +342,14 @@ export class BookingService {
       
       const cancellation = {
         ...cancellationData,
-        cancelledAt: serverTimestamp(),
+        cancelledAt: new Date(),
         refundAmount,
         refundStatus: refundAmount > 0 ? 'pending' : 'not_applicable'
       };
 
       const newStatusEntry = {
         status: 'cancelled',
-        timestamp: serverTimestamp(),
+        timestamp: new Date(),
         note: `Cancelado: ${cancellationData.reason}`,
         actor: cancellationData.cancelledBy,
         cancelledBy: cancellationData.cancelledBy
@@ -624,6 +642,154 @@ export class BookingService {
       }
     } catch (error) {
       console.error('Error freeing time slot:', error);
+    }
+  }
+
+  /**
+   * Get user bookings (customer or professional)
+   * @param {string} userId - User ID
+   * @param {string} role - 'customer' or 'professional'
+   * @param {Object} options - Query options
+   * @returns {Promise<Object>} Success object with bookings array
+   */
+  static async getUserBookings(userId, role = 'customer', options = {}) {
+    try {
+      console.log('📋 Getting user bookings:', { userId, role, options });
+      
+      // In dev mode, try to get demo bookings from localStorage first
+      if (import.meta.env.DEV) {
+        const demoBookings = this.getDemoBookings(userId, role);
+        if (demoBookings.length > 0) {
+          console.log('📋 Found demo bookings:', demoBookings.length);
+          return { success: true, bookings: demoBookings };
+        }
+      }
+      
+      // Query Firestore for real bookings
+      const fieldName = role === 'professional' ? 'professionalId' : 'customerId';
+      const bookingsQuery = query(
+        collection(db, this.collection),
+        where(fieldName, '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const snapshot = await getDocs(bookingsQuery);
+      const bookings = [];
+      
+      snapshot.forEach(doc => {
+        bookings.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      console.log('📋 Found Firestore bookings:', bookings.length);
+      return { success: true, bookings };
+      
+    } catch (error) {
+      console.error('Error getting user bookings:', error);
+      return { success: false, error: error.message, bookings: [] };
+    }
+  }
+
+  /**
+   * Get demo bookings from localStorage (for development)
+   */
+  static getDemoBookings(userId, role) {
+    try {
+      // For demo purposes, create some sample bookings
+      const now = new Date();
+      const demoBookings = [];
+      
+      // Check if there are any bookings in localStorage from actual booking creation
+      const existingBookings = JSON.parse(localStorage.getItem('demoUserBookings') || '[]');
+      
+      // Add any existing bookings for this user
+      const userBookings = existingBookings.filter(booking => {
+        return role === 'professional' ? 
+          booking.professionalId === userId : 
+          booking.customerId === userId;
+      });
+      
+      demoBookings.push(...userBookings);
+      
+      // If no existing bookings, create some sample ones for demo
+      if (demoBookings.length === 0 && role === 'customer') {
+        const sampleBookings = [
+          {
+            id: 'demo_booking_1',
+            customerId: userId,
+            professionalId: 'prof_maria_123',
+            serviceId: 'service_maria_1',
+            status: 'confirmed',
+            scheduledDate: '2025-09-05',
+            scheduledTime: '14:00',
+            service: {
+              name: 'Maquillaje Social',
+              price: 150,
+              duration: 60,
+              totalPrice: 150
+            },
+            professional: {
+              id: 'prof_maria_123',
+              name: 'María González',
+              phone: '+591 70123456'
+            },
+            location: {
+              type: 'home',
+              address: 'Calle 21 #123, Zona Sur, La Paz',
+              instructions: 'Portón azul, 2do piso'
+            },
+            statusHistory: [{
+              status: 'confirmed',
+              timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000), // Yesterday
+              note: 'Reserva confirmada por profesional'
+            }],
+            createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+            updatedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000)
+          },
+          {
+            id: 'demo_booking_2',
+            customerId: userId,
+            professionalId: 'prof_ana_456',
+            serviceId: 'service_ana_2',
+            status: 'pending',
+            scheduledDate: '2025-09-08',
+            scheduledTime: '10:00',
+            service: {
+              name: 'Uñas Decoradas',
+              price: 120,
+              duration: 90,
+              totalPrice: 120
+            },
+            professional: {
+              id: 'prof_ana_456',
+              name: 'Ana Rodríguez',
+              phone: '+591 71234567'
+            },
+            location: {
+              type: 'home',
+              address: 'Av. Ballivián #456, Zona Sur, La Paz',
+              instructions: 'Casa de color crema'
+            },
+            statusHistory: [{
+              status: 'pending',
+              timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
+              note: 'Reserva creada'
+            }],
+            createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+            updatedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000)
+          }
+        ];
+        
+        demoBookings.push(...sampleBookings);
+      }
+      
+      return demoBookings;
+      
+    } catch (error) {
+      console.error('Error getting demo bookings:', error);
+      return [];
     }
   }
 

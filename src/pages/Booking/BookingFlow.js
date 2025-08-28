@@ -277,6 +277,23 @@ export class BookingFlow {
             </div>
           </div>
 
+          <!-- Interactive Map -->
+          <div>
+            <label class="block font-semibold mb-3">📍 Selecciona tu ubicación en el mapa</label>
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+              <div id="location-map" class="w-full h-64 rounded-lg border border-gray-300"></div>
+              <div class="flex items-center justify-between mt-3 text-sm text-gray-600">
+                <span>Haz clic en el mapa para marcar tu ubicación exacta</span>
+                <button id="get-current-location" type="button" class="text-brand hover:text-brand-hover font-medium">
+                  🎯 Mi ubicación actual
+                </button>
+              </div>
+            </div>
+            <div id="location-coordinates" class="text-xs text-gray-500 mb-4" style="display: none;">
+              Coordenadas: <span id="lat-lng">No seleccionado</span>
+            </div>
+          </div>
+
           <!-- Address -->
           <div>
             <label class="block font-semibold mb-2">Dirección completa</label>
@@ -284,7 +301,7 @@ export class BookingFlow {
               id="location-address"
               rows="3"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
-              placeholder="Ej: Calle 21 #123, Zona Sur, La Paz"
+              placeholder="Ej: Calle 21 #123, Zona Sur, La Paz (se completará automáticamente si seleccionas en el mapa)"
             >${this.bookingData.location.address}</textarea>
           </div>
 
@@ -623,34 +640,61 @@ export class BookingFlow {
     try {
       console.log('📋 Loading services...');
       
-      // For now, let's create some demo services
-      this.availableServices = [
-        {
-          id: 'service_1',
-          name: 'Maquillaje Social',
-          price: 150,
-          duration: 60,
-          category: 'makeup',
-          description: 'Maquillaje para eventos sociales'
-        },
-        {
-          id: 'service_2',
-          name: 'Maquillaje de Novia',
-          price: 350,
-          duration: 120,
-          category: 'makeup',
-          description: 'Maquillaje completo para novias'
-        },
-        {
-          id: 'service_3',
-          name: 'Peinado y Maquillaje',
-          price: 280,
-          duration: 90,
-          category: 'hair_makeup',
-          description: 'Peinado y maquillaje combinados'
+      // Try to load demo services from localStorage
+      let services = [];
+      try {
+        const demoProfessionals = localStorage.getItem('demoProfessionals');
+        if (demoProfessionals) {
+          const professionals = JSON.parse(demoProfessionals);
+          // Extract all services from all professionals
+          professionals.forEach(prof => {
+            if (prof.services) {
+              prof.services.forEach(service => {
+                services.push({
+                  ...service,
+                  professionalId: prof.id,
+                  professionalName: prof.name
+                });
+              });
+            }
+          });
+          console.log('📋 Loaded services from demo data:', services.length);
         }
-      ];
-
+      } catch (error) {
+        console.warn('⚠️ Error loading demo services:', error);
+      }
+      
+      // Fallback to hardcoded services if no demo data
+      if (services.length === 0) {
+        services = [
+          {
+            id: 'service_1',
+            name: 'Maquillaje Social',
+            price: 150,
+            duration: 60,
+            category: 'makeup',
+            description: 'Maquillaje para eventos sociales'
+          },
+          {
+            id: 'service_2',
+            name: 'Maquillaje de Novia',
+            price: 350,
+            duration: 120,
+            category: 'makeup',
+            description: 'Maquillaje completo para novias'
+          },
+          {
+            id: 'service_3',
+            name: 'Peinado y Maquillaje',
+            price: 280,
+            duration: 90,
+            category: 'hair_makeup',
+            description: 'Peinado y maquillaje combinados'
+          }
+        ];
+      }
+      
+      this.availableServices = services;
       this.renderServicesGrid();
     } catch (error) {
       console.error('Error loading services:', error);
@@ -713,39 +757,70 @@ export class BookingFlow {
     try {
       console.log('👩‍💼 Loading professionals...');
       
-      // For demo, create some professionals
-      this.availableProfessionals = [
-        {
-          id: 'prof_1',
-          name: 'María González',
-          specialties: ['Maquillaje', 'Peinados'],
-          rating: 4.9,
-          completedBookings: 156,
-          avatar: '👩‍💼'
-        },
-        {
-          id: 'prof_2', 
-          name: 'Ana Rodríguez',
-          specialties: ['Maquillaje de Novias', 'Eventos'],
-          rating: 4.8,
-          completedBookings: 98,
-          avatar: '💄'
-        },
-        {
-          id: 'prof_3',
-          name: 'Carmen Silva',
-          specialties: ['Peinados', 'Tratamientos'],
-          rating: 4.7,
-          completedBookings: 203,
-          avatar: '✨'
+      let professionals = [];
+      
+      // Try to load demo professionals from localStorage
+      try {
+        const demoProfessionals = localStorage.getItem('demoProfessionals');
+        if (demoProfessionals) {
+          const professionalsData = JSON.parse(demoProfessionals);
+          professionals = professionalsData.map(prof => ({
+            id: prof.id,
+            name: prof.name,
+            specialties: prof.specialties,
+            rating: prof.rating,
+            completedBookings: prof.completedBookings,
+            avatar: this.getProfessionalAvatar(prof.specialties)
+          }));
+          console.log('👩‍💼 Loaded professionals from demo data:', professionals.length);
         }
-      ];
-
+      } catch (error) {
+        console.warn('⚠️ Error loading demo professionals:', error);
+      }
+      
+      // Fallback to hardcoded professionals if no demo data
+      if (professionals.length === 0) {
+        professionals = [
+          {
+            id: 'prof_1',
+            name: 'María González',
+            specialties: ['Maquillaje', 'Peinados'],
+            rating: 4.9,
+            completedBookings: 156,
+            avatar: '👩‍💼'
+          },
+          {
+            id: 'prof_2', 
+            name: 'Ana Rodríguez',
+            specialties: ['Maquillaje de Novias', 'Eventos'],
+            rating: 4.8,
+            completedBookings: 98,
+            avatar: '💄'
+          },
+          {
+            id: 'prof_3',
+            name: 'Carmen Silva',
+            specialties: ['Peinados', 'Tratamientos'],
+            rating: 4.7,
+            completedBookings: 203,
+            avatar: '✨'
+          }
+        ];
+      }
+      
+      this.availableProfessionals = professionals;
       this.renderProfessionalsGrid();
     } catch (error) {
       console.error('Error loading professionals:', error);
       document.getElementById('professionals-grid').innerHTML = '<div class="col-span-full text-center text-red-500">Error al cargar profesionales</div>';
     }
+  }
+
+  getProfessionalAvatar(specialties) {
+    if (specialties.some(s => s.toLowerCase().includes('maquillaje'))) return '💄';
+    if (specialties.some(s => s.toLowerCase().includes('uña'))) return '💅';
+    if (specialties.some(s => s.toLowerCase().includes('cabello'))) return '✂️';
+    return '✨';
   }
 
   renderProfessionalsGrid() {
@@ -831,68 +906,144 @@ export class BookingFlow {
   async loadTimeSlots() {
     try {
       console.log('🕐 Loading time slots for:', this.bookingData.scheduledDate);
+      console.log('🕐 Selected professional:', this.bookingData.professionalId);
       
       const timeSlotsContainer = document.getElementById('time-slots');
-      if (!timeSlotsContainer) return;
+      if (!timeSlotsContainer) {
+        console.log('🕐 Time slots container not found');
+        return;
+      }
 
       timeSlotsContainer.innerHTML = '<div class="flex justify-center py-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div></div>';
 
-      // For demo, create some available slots
-      this.availableSlots = [
-        { start: '09:00', end: '10:00', duration: 60 },
-        { start: '10:00', end: '11:00', duration: 60 },
-        { start: '11:00', end: '12:00', duration: 60 },
-        { start: '14:00', end: '15:00', duration: 60 },
-        { start: '15:00', end: '16:00', duration: 60 },
-        { start: '16:00', end: '17:00', duration: 60 },
-        { start: '17:00', end: '18:00', duration: 60 }
-      ];
+      // Try to load availability from demo data in dev mode
+      this.availableSlots = [];
+      
+      if (import.meta.env.DEV) {
+        try {
+          const demoAvailability = localStorage.getItem('demoAvailability');
+          console.log('🕐 Demo availability data:', demoAvailability ? 'found' : 'not found');
+          
+          if (demoAvailability) {
+            const availability = JSON.parse(demoAvailability);
+            const professionalId = this.bookingData.professionalId;
+            const date = this.bookingData.scheduledDate;
+            
+            console.log('🕐 Looking for availability:', { professionalId, date });
+            console.log('🕐 Available professionals in demo:', Object.keys(availability));
+            
+            if (availability[professionalId] && availability[professionalId][date]) {
+              const dayAvailability = availability[professionalId][date];
+              console.log('🕐 Found day availability:', dayAvailability);
+              
+              if (dayAvailability.timeSlots) {
+                this.availableSlots = dayAvailability.timeSlots
+                  .filter(slot => slot.available)
+                  .map(slot => ({
+                    start: slot.start,
+                    end: slot.end,
+                    duration: 60 // Assuming 60 minutes for now
+                  }));
+                console.log('🕐 Available slots found:', this.availableSlots.length);
+              }
+            } else {
+              console.log('🕐 No availability found for this professional/date combination');
+            }
+          }
+        } catch (error) {
+          console.warn('🕐 Error loading demo availability:', error);
+        }
+      }
+      
+      // Fallback to default slots if no demo data found
+      if (this.availableSlots.length === 0) {
+        console.log('🕐 Using fallback time slots');
+        this.availableSlots = [
+          { start: '09:00', end: '10:00', duration: 60 },
+          { start: '10:00', end: '11:00', duration: 60 },
+          { start: '11:00', end: '12:00', duration: 60 },
+          { start: '14:00', end: '15:00', duration: 60 },
+          { start: '15:00', end: '16:00', duration: 60 },
+          { start: '16:00', end: '17:00', duration: 60 },
+          { start: '17:00', end: '18:00', duration: 60 }
+        ];
+      }
 
-      this.renderTimeSlots();
+      console.log('🕐 Rendering', this.availableSlots.length, 'time slots');
+      
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        this.renderTimeSlots();
+      }, 100);
     } catch (error) {
-      console.error('Error loading time slots:', error);
-      document.getElementById('time-slots').innerHTML = '<div class="text-center text-red-500 py-4">Error al cargar horarios</div>';
+      console.error('🕐 Error loading time slots:', error);
+      const container = document.getElementById('time-slots');
+      if (container) {
+        container.innerHTML = '<div class="text-center text-red-500 py-4">Error al cargar horarios</div>';
+      }
     }
   }
 
   renderTimeSlots() {
+    console.log('🕐 renderTimeSlots called with', this.availableSlots.length, 'slots');
     const timeSlotsContainer = document.getElementById('time-slots');
-    if (!timeSlotsContainer) return;
+    if (!timeSlotsContainer) {
+      console.log('🕐 renderTimeSlots: container not found');
+      return;
+    }
 
+    console.log('🕐 Generating HTML for time slots...');
+    const slotsHTML = this.availableSlots.map(slot => {
+      console.log('🕐 Processing slot:', slot);
+      return `
+        <button
+          class="time-slot px-4 py-3 text-sm font-medium rounded-lg border-2 transition-all duration-200 ${
+            this.bookingData.scheduledTime === slot.start 
+              ? 'border-brand bg-brand text-white' 
+              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+          }"
+          data-time="${slot.start}"
+        >
+          ${slot.start}
+        </button>
+      `;
+    }).join('');
+    
+    console.log('🕐 Setting innerHTML with slots HTML');
     timeSlotsContainer.innerHTML = `
       <div class="grid grid-cols-2 gap-2">
-        ${this.availableSlots.map(slot => `
-          <button
-            class="time-slot px-4 py-3 text-sm font-medium rounded-lg border-2 transition-all duration-200 ${
-              this.bookingData.scheduledTime === slot.start 
-                ? 'border-brand bg-brand text-white' 
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-            }"
-            data-time="${slot.start}"
-          >
-            ${slot.start}
-          </button>
-        `).join('')}
+        ${slotsHTML}
       </div>
     `;
+    
+    console.log('🕐 HTML set, container content:', timeSlotsContainer.innerHTML.length, 'chars');
+    
+    // Force reflow to ensure DOM updates
+    timeSlotsContainer.offsetHeight;
+    
+    console.log('🕐 Container visible?', timeSlotsContainer.offsetHeight > 0);
+    console.log('🕐 Container children count:', timeSlotsContainer.children.length);
 
     // Add event listeners
     timeSlotsContainer.querySelectorAll('.time-slot').forEach(timeBtn => {
       timeBtn.addEventListener('click', () => {
+        console.log('🕐 Time slot clicked:', timeBtn.dataset.time);
         const selectedTime = timeBtn.dataset.time;
         this.bookingData.scheduledTime = selectedTime;
         
-        // Update display
+        console.log('🕐 Time selected, updating visual selection only');
+        // Just update the visual selection - don't re-render the whole step
         this.renderTimeSlots();
         
-        // Update step display to show confirmation
-        document.querySelector('.step-content').innerHTML = this.renderDateTimeSelection();
-        this.bindCalendarEvents();
+        console.log('🕐 Time slot selection complete - ready to advance to next step');
+        // The user can now click "Siguiente" to move to step 4
       });
     });
   }
 
   bindLocationEvents() {
+    console.log('🗺️ Binding location events...');
+    
     // Location type radio buttons
     const locationRadios = document.querySelectorAll('input[name="locationType"]');
     locationRadios.forEach(radio => {
@@ -906,6 +1057,176 @@ export class BookingFlow {
         }
       });
     });
+    
+    // Initialize map
+    this.initializeLocationMap();
+  }
+  
+  initializeLocationMap() {
+    console.log('🗺️ Initializing location map...');
+    
+    // Check if Leaflet is available
+    if (typeof L === 'undefined') {
+      console.error('🗺️ Leaflet library not loaded');
+      return;
+    }
+    
+    const mapContainer = document.getElementById('location-map');
+    if (!mapContainer) {
+      console.log('🗺️ Map container not found');
+      return;
+    }
+    
+    // Default location (La Paz, Bolivia)
+    const defaultLat = -16.5167;
+    const defaultLng = -68.1333;
+    
+    // Use existing coordinates if available
+    const lat = this.bookingData.location.coordinates?.lat || defaultLat;
+    const lng = this.bookingData.location.coordinates?.lng || defaultLng;
+    
+    console.log('🗺️ Creating map at coordinates:', { lat, lng });
+    
+    // Create map
+    this.locationMap = L.map('location-map').setView([lat, lng], 13);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(this.locationMap);
+    
+    // Add marker if coordinates exist
+    if (this.bookingData.location.coordinates) {
+      this.locationMarker = L.marker([lat, lng])
+        .addTo(this.locationMap)
+        .bindPopup('Tu ubicación')
+        .openPopup();
+      
+      // Show coordinates
+      document.getElementById('location-coordinates').style.display = 'block';
+      document.getElementById('lat-lng').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    }
+    
+    // Handle map clicks
+    this.locationMap.on('click', (e) => {
+      console.log('🗺️ Map clicked at:', e.latlng);
+      this.selectLocationOnMap(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Handle current location button
+    const currentLocationBtn = document.getElementById('get-current-location');
+    if (currentLocationBtn) {
+      currentLocationBtn.addEventListener('click', () => {
+        this.getCurrentLocation();
+      });
+    }
+    
+    console.log('🗺️ Map initialized successfully');
+  }
+  
+  selectLocationOnMap(lat, lng) {
+    console.log('🗺️ Selecting location:', { lat, lng });
+    
+    // Update booking data
+    this.bookingData.location.coordinates = { lat, lng };
+    
+    // Remove existing marker
+    if (this.locationMarker) {
+      this.locationMap.removeLayer(this.locationMarker);
+    }
+    
+    // Add new marker
+    this.locationMarker = L.marker([lat, lng])
+      .addTo(this.locationMap)
+      .bindPopup('Tu ubicación seleccionada')
+      .openPopup();
+    
+    // Update coordinates display
+    document.getElementById('location-coordinates').style.display = 'block';
+    document.getElementById('lat-lng').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    
+    // Try to get address from coordinates (reverse geocoding)
+    this.reverseGeocode(lat, lng);
+  }
+  
+  getCurrentLocation() {
+    console.log('🎯 Getting current location...');
+    
+    if (!navigator.geolocation) {
+      alert('La geolocalización no está soportada por este navegador.');
+      return;
+    }
+    
+    const btn = document.getElementById('get-current-location');
+    btn.textContent = '📍 Obteniendo ubicación...';
+    btn.disabled = true;
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log('🎯 Got current position:', position.coords);
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // Update map and marker
+        this.locationMap.setView([lat, lng], 15);
+        this.selectLocationOnMap(lat, lng);
+        
+        btn.textContent = '🎯 Mi ubicación actual';
+        btn.disabled = false;
+      },
+      (error) => {
+        console.error('🎯 Geolocation error:', error);
+        let message = 'Error obteniendo ubicación: ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            message += 'Permiso denegado';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message += 'Ubicación no disponible';
+            break;
+          case error.TIMEOUT:
+            message += 'Tiempo de espera agotado';
+            break;
+          default:
+            message += 'Error desconocido';
+        }
+        alert(message);
+        
+        btn.textContent = '🎯 Mi ubicación actual';
+        btn.disabled = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minutes
+      }
+    );
+  }
+  
+  reverseGeocode(lat, lng) {
+    console.log('🔍 Reverse geocoding:', { lat, lng });
+    
+    // Use Nominatim API for reverse geocoding (free)
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+    
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        console.log('🔍 Reverse geocoding result:', data);
+        
+        if (data && data.display_name) {
+          // Update address field
+          const addressField = document.getElementById('location-address');
+          if (addressField && !addressField.value.trim()) {
+            addressField.value = data.display_name;
+            this.bookingData.location.address = data.display_name;
+          }
+        }
+      })
+      .catch(error => {
+        console.warn('🔍 Reverse geocoding failed:', error);
+        // Fail silently - not critical
+      });
   }
 
   bindConfirmationEvents() {

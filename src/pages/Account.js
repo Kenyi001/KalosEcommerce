@@ -6,6 +6,7 @@
 import { renderWithLayout } from '../components/Layout.js';
 import { authService } from '../services/auth.js';
 import { navigateTo } from '../utils/router.js';
+import { BookingService } from '../services/bookings.js';
 
 /**
  * Render account dashboard page
@@ -99,7 +100,7 @@ export function initializeAccountPage() {
     console.log('👤 Active role:', profile.activeRole);
     
     populateUserInfo(user, profile);
-    populateRoleContent(profile.activeRole);
+    populateRoleContent(profile.activeRole, user.uid);
     setupRoleAdditionButtons(profile);
     
     // Update header to show authenticated state
@@ -221,14 +222,16 @@ function populateUserInfo(user, profile) {
 /**
  * Populate content based on user role
  */
-function populateRoleContent(role) {
+function populateRoleContent(role, userId) {
   const contentDiv = document.getElementById('accountContent');
   if (!contentDiv) return;
 
   if (role === 'professional') {
     contentDiv.innerHTML = getProfessionalContent();
+    loadUserBookings(userId, 'professional');
   } else {
     contentDiv.innerHTML = getCustomerContent();
+    loadUserBookings(userId, 'customer');
   }
 }
 
@@ -255,20 +258,32 @@ function getProfessionalContent() {
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
-        <div class="flex items-center">
-          <div class="p-3 rounded-full bg-green-500 text-white">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-lg font-semibold text-gray-900">Mis Reservas</h3>
-            <p class="text-gray-600">Próximamente en Fase 3</p>
+      <!-- My Bookings Section -->
+      <div class="bg-white rounded-lg border border-gray-200 shadow-sm col-span-full">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-green-500 text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-semibold text-gray-900">Mis Reservas</h3>
+                <p class="text-gray-600">Reservas de clientes</p>
+              </div>
+            </div>
+            <button onclick="location.href='/pro/dashboard'" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover transition-colors text-sm">
+              📊 Ver Dashboard
+            </button>
           </div>
         </div>
-        <div class="mt-4">
-          <span class="text-gray-500">En desarrollo...</span>
+        
+        <!-- Professional Bookings Content -->
+        <div id="professional-bookings-content" class="p-6">
+          <div class="flex justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
+          </div>
         </div>
       </div>
 
@@ -320,38 +335,52 @@ function getProfessionalContent() {
  */
 function getCustomerContent() {
   return `
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-6">
-        <div class="flex items-center">
-          <div class="p-3 rounded-full bg-pink-500 text-white">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-lg font-semibold text-gray-900">Mis Reservas</h3>
-            <p class="text-gray-600">Historial y próximas citas</p>
+    <div class="space-y-6">
+      <!-- My Bookings Section -->
+      <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-pink-500 text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-semibold text-gray-900">Mis Reservas</h3>
+                <p class="text-gray-600">Historial y próximas citas</p>
+              </div>
+            </div>
+            <button onclick="location.href='/booking/new'" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover transition-colors text-sm">
+              ✨ Nueva Reserva
+            </button>
           </div>
         </div>
-        <div class="mt-4">
-          <span class="text-gray-500">Próximamente en Fase 3</span>
+        
+        <!-- Bookings Content -->
+        <div id="customer-bookings-content" class="p-6">
+          <div class="flex justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
+          </div>
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-6">
-        <div class="flex items-center">
-          <div class="p-3 rounded-full bg-yellow-500 text-white">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-            </svg>
+        <!-- Favorites Section -->
+        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-6">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-500 text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-lg font-semibold text-gray-900">Mis Favoritos</h3>
+              <p class="text-gray-600">Profesionales guardados</p>
+            </div>
           </div>
-          <div class="ml-4">
-            <h3 class="text-lg font-semibold text-gray-900">Mis Favoritos</h3>
-            <p class="text-gray-600">Profesionales guardados</p>
+          <div class="mt-4">
+            <span class="text-gray-500">Próximamente...</span>
           </div>
-        </div>
-        <div class="mt-4">
-          <span class="text-gray-500">Próximamente...</span>
         </div>
       </div>
     </div>
@@ -506,6 +535,166 @@ function setupRoleAdditionButtons(profile) {
       console.log('🔧 Professional button enabled');
     }
   }
+}
+
+/**
+ * Load user bookings based on role
+ */
+async function loadUserBookings(userId, role) {
+  console.log('📋 Loading user bookings:', { userId, role });
+  
+  const contentId = role === 'professional' ? 'professional-bookings-content' : 'customer-bookings-content';
+  const contentContainer = document.getElementById(contentId);
+  
+  if (!contentContainer) {
+    console.log('📋 Bookings container not found:', contentId);
+    return;
+  }
+
+  try {
+    const result = await BookingService.getUserBookings(userId, role);
+    
+    if (result.success && result.bookings.length > 0) {
+      console.log('📋 Loaded bookings:', result.bookings.length);
+      contentContainer.innerHTML = renderBookingsList(result.bookings, role);
+    } else {
+      console.log('📋 No bookings found');
+      contentContainer.innerHTML = renderEmptyBookings(role);
+    }
+  } catch (error) {
+    console.error('📋 Error loading bookings:', error);
+    contentContainer.innerHTML = `
+      <div class="text-center py-8">
+        <div class="text-red-500 text-4xl mb-4">⚠️</div>
+        <p class="text-gray-600">Error cargando reservas</p>
+      </div>
+    `;
+  }
+}
+
+/**
+ * Render bookings list
+ */
+function renderBookingsList(bookings, role) {
+  if (bookings.length === 0) {
+    return renderEmptyBookings(role);
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'confirmed': return 'Confirmada';
+      case 'pending': return 'Pendiente';
+      case 'cancelled': return 'Cancelada';
+      case 'completed': return 'Completada';
+      default: return status;
+    }
+  };
+
+  const bookingCards = bookings.slice(0, 5).map(booking => { // Show only first 5
+    const date = new Date(booking.scheduledDate + ' ' + booking.scheduledTime);
+    const isUpcoming = date > new Date();
+    const otherParty = role === 'customer' ? booking.professional : booking.customer;
+    
+    return `
+      <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" 
+           onclick="location.href='/booking/${booking.id}'">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900">${booking.service.name}</h4>
+            <p class="text-sm text-gray-600">
+              ${role === 'customer' ? 'Con' : 'Para'}: ${otherParty?.name || 'Cliente'}
+            </p>
+          </div>
+          <span class="px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}">
+            ${getStatusText(booking.status)}
+          </span>
+        </div>
+        
+        <div class="flex items-center text-sm text-gray-600 mb-2">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          ${date.toLocaleDateString('es-ES', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </div>
+        
+        <div class="flex items-center text-sm text-gray-600 mb-3">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          ${booking.scheduledTime} • ${booking.service.duration || 60} min
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold text-brand">
+            Bs. ${booking.service.totalPrice || booking.service.price}
+          </div>
+          <div class="text-xs text-gray-500">
+            ${isUpcoming ? '📅 Próxima' : '✅ Pasada'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const showMoreButton = bookings.length > 5 ? `
+    <div class="text-center mt-4">
+      <button class="text-brand hover:text-brand-hover font-medium text-sm">
+        Ver todas las reservas (${bookings.length - 5} más)
+      </button>
+    </div>
+  ` : '';
+
+  return `
+    <div class="space-y-4">
+      ${bookingCards}
+      ${showMoreButton}
+    </div>
+  `;
+}
+
+/**
+ * Render empty bookings state
+ */
+function renderEmptyBookings(role) {
+  const isCustomer = role === 'customer';
+  
+  return `
+    <div class="text-center py-12">
+      <div class="text-6xl mb-4">${isCustomer ? '✨' : '📅'}</div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">
+        ${isCustomer ? '¡Tu primera reserva te espera!' : 'Aún no tienes reservas'}
+      </h3>
+      <p class="text-gray-600 mb-6">
+        ${isCustomer 
+          ? 'Descubre profesionales increíbles y reserva tu primer servicio' 
+          : 'Las reservas de tus clientes aparecerán aquí'}
+      </p>
+      ${isCustomer ? `
+        <button onclick="location.href='/marketplace'" class="bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium">
+          🛍️ Explorar Marketplace
+        </button>
+      ` : `
+        <button onclick="location.href='/pro/dashboard'" class="bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium">
+          📊 Ver Dashboard
+        </button>
+      `}
+    </div>
+  `;
 }
 
 /**

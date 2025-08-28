@@ -67,7 +67,7 @@ export function renderHeader() {
             </div>
 
             <!-- Authenticated user buttons (shown when logged in) -->
-            <div id="user-buttons" class="hidden flex items-center space-x-3">
+            <div id="user-buttons" class="hidden items-center space-x-3">
               <div class="flex items-center space-x-2">
                 <div class="w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center text-sm font-bold" id="user-avatar">
                   UD
@@ -166,8 +166,13 @@ export function renderHeader() {
 export function initializeHeader() {
   console.log('🚀 Initializing header...');
   
-  // Logo click - smart home redirect
-  document.addEventListener('click', (event) => {
+  // Remove existing header event listeners to prevent duplicates
+  if (window.headerClickListener) {
+    document.removeEventListener('click', window.headerClickListener);
+  }
+  
+  // Create the click handler
+  const headerClickHandler = (event) => {
     if (event.target.closest('#logo-button')) {
       event.preventDefault();
       
@@ -218,9 +223,14 @@ export function initializeHeader() {
 
     // User dropdown toggle
     if (event.target.closest('#user-menu-button')) {
+      console.log('🔽 User menu button clicked');
       const dropdown = document.getElementById('user-dropdown');
       if (dropdown) {
+        const wasHidden = dropdown.classList.contains('hidden');
         dropdown.classList.toggle('hidden');
+        console.log('🔽 Dropdown toggled:', wasHidden ? 'now showing' : 'now hidden');
+      } else {
+        console.log('🔽 Dropdown element not found!');
       }
     }
 
@@ -236,7 +246,11 @@ export function initializeHeader() {
     if (event.target.closest('#logout-button')) {
       handleLogout();
     }
-  });
+  };
+  
+  // Store reference and add the listener
+  window.headerClickListener = headerClickHandler;
+  document.addEventListener('click', headerClickHandler);
 
   // Update header based on auth state
   updateHeaderAuthState();
@@ -336,7 +350,10 @@ function updateHeaderAuthState() {
     console.log('🔄 User authenticated, showing user buttons');
     // User is authenticated - show user buttons, hide guest buttons
     if (guestButtons) guestButtons.classList.add('hidden');
-    if (userButtons) userButtons.classList.remove('hidden');
+    if (userButtons) {
+      userButtons.classList.remove('hidden');
+      userButtons.classList.add('flex');
+    }
     
     // Update user info
     if (userName) userName.textContent = profile.displayName || user.email;
@@ -359,7 +376,10 @@ function updateHeaderAuthState() {
     console.log('🔄 User NOT authenticated, showing guest buttons');
     // User not authenticated - show guest buttons, hide user buttons
     if (guestButtons) guestButtons.classList.remove('hidden');
-    if (userButtons) userButtons.classList.add('hidden');
+    if (userButtons) {
+      userButtons.classList.add('hidden');
+      userButtons.classList.remove('flex');
+    }
   }
 }
 
@@ -367,28 +387,39 @@ function updateHeaderAuthState() {
  * Handle user logout
  */
 async function handleLogout() {
+  console.log('🚪 Logout button clicked');
   const confirmed = confirm('¿Estás seguro que deseas cerrar sesión?');
   if (!confirmed) return;
 
   try {
+    console.log('🚪 Processing logout...');
+    
     // For demo mode, clear localStorage
     if (import.meta.env.DEV) {
+      console.log('🚪 Demo mode logout - clearing localStorage');
       localStorage.removeItem('demoUser');
       localStorage.removeItem('demoProfile');
+      console.log('🚪 localStorage cleared, updating header');
       updateHeaderAuthState();
+      console.log('🚪 Redirecting to home');
       window.location.href = '/';
       return;
     }
 
     // For production, use auth service
     if (typeof authService !== 'undefined') {
+      console.log('🚪 Production logout using authService');
       const result = await authService.logout();
       if (result.success) {
+        console.log('🚪 AuthService logout successful');
         window.location.href = '/';
+      } else {
+        console.error('🚪 AuthService logout failed:', result.error);
+        alert('Error al cerrar sesión: ' + result.error);
       }
     }
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('🚪 Logout error:', error);
     alert('Error al cerrar sesión');
   }
 }

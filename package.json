@@ -12,7 +12,8 @@
     "test:ui": "vitest --ui",
     "test:unit": "vitest run",
     "seed": "node scripts/seed-data.js",
-    "seed:emulator": "VITE_ENABLE_EMULATORS=true node scripts/seed-data.js"
+    "seed:emulator": "VITE_ENABLE_EMULATORS=true node scripts/seed-data.js",
+    "seed:booking": "node scripts/seed-booking-demo.js"
   },
   "dependencies": {
     "firebase": "^10.14.1"

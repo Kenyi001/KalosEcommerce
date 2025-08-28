@@ -25,10 +25,14 @@ import { renderMarketplacePage, initializeMarketplacePage } from '../pages/Marke
 
 // Booking system imports
 import { renderBookingFlowPage, initializeBookingFlowPage } from '../pages/Booking/BookingFlow.js';
+import { renderBookingConfirmationPage, initializeBookingConfirmationPage } from '../pages/Booking/BookingConfirmation.js';
+import { renderBookingDetailPage, initializeBookingDetailPage } from '../pages/Booking/BookingDetail.js';
+
+// Demo setup imports  
+import { renderDemoSetupPage, initializeDemoSetupPage } from '../pages/DemoSetup.js';
 
 // Import route handlers (will be implemented in later phases)
 // import { renderSearchPage } from '../pages/Search.js';
-// Note: renderBookingDetailPage and renderBookingConfirmationPage will be implemented next
 
 /**
  * Route definitions following the Project Chapter specifications
@@ -261,6 +265,16 @@ export const routes = [
     },
     guards: [requireCustomerOrProfessional],
     title: 'Reserva Confirmada - Kalos'
+  },
+
+  // Demo and testing routes
+  {
+    path: '/demo/setup',
+    handler: () => {
+      document.getElementById('app').innerHTML = renderDemoSetupPage();
+      initializeDemoSetupPage();
+    },
+    title: 'Demo Setup - Kalos'
   },
 
   // Legal pages

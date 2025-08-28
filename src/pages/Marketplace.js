@@ -264,21 +264,59 @@ export function initializeMarketplacePage() {
     try {
       showLoadingState();
       
-      // Load professionals from service
-      const result = await professionalService.searchProfessionals({
-        published: true,
-        verified: true
-      }, {
-        limit: 50 // Load more for client-side filtering
-      });
+      let professionals = [];
+      let useDemo = false;
       
-      if (result.success) {
-        professionals = result.data;
-        applyFilters();
-        renderProfessionals();
-      } else {
-        throw new Error(result.error);
+      // In development mode, try to load demo professionals first
+      if (import.meta.env.DEV) {
+        try {
+          const demoProfessionals = localStorage.getItem('demoProfessionals');
+          if (demoProfessionals) {
+            const demoProfessionalsData = JSON.parse(demoProfessionals);
+            professionals = demoProfessionalsData.map(prof => ({
+              id: prof.id,
+              userId: prof.userId,
+              name: prof.name,
+              email: prof.email,
+              phone: prof.phone,
+              location: prof.location,
+              bio: prof.bio,
+              specialties: prof.specialties,
+              experience: prof.experience,
+              rating: prof.rating,
+              completedBookings: prof.completedBookings,
+              verified: prof.verified,
+              featured: prof.featured,
+              published: prof.published,
+              services: prof.services || []
+            }));
+            useDemo = true;
+            console.log('🎭 Loaded professionals from demo data:', professionals.length);
+          }
+        } catch (error) {
+          console.warn('⚠️ Error loading demo professionals:', error);
+        }
       }
+      
+      // Fallback to Firebase if no demo data
+      if (!useDemo) {
+        const result = await professionalService.searchProfessionals({
+          published: true,
+          verified: true
+        }, {
+          limit: 50 // Load more for client-side filtering
+        });
+        
+        if (result.success) {
+          professionals = result.data;
+        } else {
+          throw new Error(result.error);
+        }
+      }
+      
+      window.loadedProfessionals = professionals; // Store globally for filtering
+      applyFilters();
+      renderProfessionals();
       
     } catch (error) {
       console.error('Error loading professionals:', error);
