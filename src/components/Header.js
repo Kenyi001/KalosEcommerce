@@ -1,43 +1,48 @@
 /**
- * Header Component - Main navigation for Kalos E-commerce
- * Includes logo, navigation menu, and authentication buttons
+ * Header Component - Navigation header with authentication
  */
 
 import { authService } from '../services/auth.js';
 
+// Idempotencia global
+if (!window.__headerMounted) window.__headerMounted = false;
+
 export function renderHeader() {
+  // Always render in default state (not authenticated)
+  // updateHeaderAuthState() will fix the visibility after page load
+  
   return `
-    <header class="bg-kalos-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
       <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo -->
           <div class="flex items-center">
-            <button 
-              id="logo-button"
-              class="flex items-center space-x-2">
-              <span class="text-2xl">💄</span>
-              <h1 class="text-2xl font-display font-bold text-brand">Kalos</h1>
+            <button id="logo-button" class="flex-shrink-0 flex items-center">
+              <div class="w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center font-bold text-lg mr-3">
+                K
+              </div>
+              <span class="font-display font-bold text-xl text-navy">Kalos</span>
             </button>
           </div>
 
           <!-- Desktop Navigation -->
-          <div class="hidden md:flex items-center space-x-8">
+          <div class="hidden md:flex items-center space-x-6">
             <button 
               data-router-link 
               data-href="/marketplace"
-              class="nav-link text-gray-600 hover:text-brand transition-colors">
+              class="text-gray-600 hover:text-brand px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Marketplace
             </button>
             <button 
               data-router-link 
               data-href="/como-funciona"
-              class="nav-link text-gray-600 hover:text-brand transition-colors">
+              class="text-gray-600 hover:text-brand px-3 py-2 rounded-md text-sm font-medium transition-colors">
               ¿Cómo Funciona?
             </button>
             <button 
               data-router-link 
               data-href="/ayuda"
-              class="nav-link text-gray-600 hover:text-brand transition-colors">
+              class="text-gray-600 hover:text-brand px-3 py-2 rounded-md text-sm font-medium transition-colors">
               Ayuda
             </button>
           </div>
@@ -67,12 +72,14 @@ export function renderHeader() {
             </div>
 
             <!-- Authenticated user buttons (shown when logged in) -->
-            <div id="user-buttons" class="hidden items-center space-x-3">
+            <div id="user-buttons" class="hidden flex items-center space-x-3">
               <div class="flex items-center space-x-2">
                 <div class="w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center text-sm font-bold" id="user-avatar">
-                  UD
+                  U
                 </div>
-                <span class="text-sm font-medium text-gray-700" id="user-name">Usuario</span>
+                <span class="text-sm font-medium text-gray-700" id="user-name">
+                  Usuario
+                </span>
               </div>
               
               <div class="relative">
@@ -91,9 +98,7 @@ export function renderHeader() {
                     <div class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                       Cambiar Rol
                     </div>
-                    <div id="role-switcher-menu">
-                      <!-- Role options will be populated by JavaScript -->
-                    </div>
+                    <div id="role-switcher-menu"></div>
                   </div>
                   
                   <div class="border-t border-gray-100 mt-1 pt-1">
@@ -107,7 +112,7 @@ export function renderHeader() {
                 </div>
               </div>
             </div>
-            
+
             <!-- Mobile menu button -->
             <button 
               id="mobile-menu-button"
@@ -149,9 +154,9 @@ export function renderHeader() {
             </button>
             <button 
               data-router-link 
-              data-href="/auth/register?role=professional"
+              data-href="/auth/register"
               class="text-brand hover:text-brand-hover px-3 py-2 text-base font-medium transition-colors">
-              Soy Profesional
+              Crear Cuenta
             </button>
           </div>
         </div>
@@ -160,236 +165,332 @@ export function renderHeader() {
   `;
 }
 
-/**
- * Initialize header interactions (mobile menu)
- */
-export function initializeHeader() {
-  console.log('🚀 Initializing header...');
+export async function initializeHeader() {
+  if (window.__headerMounted) {
+    console.log('🏠 Header already mounted, skipping...');
+    return;
+  }
   
-  // Remove existing header event listeners to prevent duplicates
+  console.log('🏠 Initializing header...');
+  await waitForHeader();
+  mountHeaderListeners();
+  
+  // Initial state update
+  updateHeaderAuthState();
+  
+  // Subscribe to auth state changes
+  subscribeToAuthChanges();
+  
+  window.__headerMounted = true;
+  console.log('🏠 Header mounted successfully');
+}
+
+function subscribeToAuthChanges() {
+  console.log('🏠 Subscribing to auth state changes...');
+  
+  // Listen for auth state changes
+  if (authService && authService.onAuthStateChange) {
+    authService.onAuthStateChange((authState) => {
+      console.log('🏠 Header received auth state change:', authState);
+      updateHeaderAuthState();
+    });
+  }
+  
+  // Also listen for auth state manager events (fallback)
+  document.addEventListener('authStateChange', (event) => {
+    console.log('🏠 Header received DOM auth state change:', event.detail);
+    updateHeaderAuthState();
+  });
+}
+
+async function waitForHeader() {
+  const requiredNodes = ['auth-buttons', 'guest-buttons', 'user-buttons'];
+  
+  const hasRequired = () => requiredNodes.every(id => document.getElementById(id));
+  
+  // Wait for DOM ready first
+  if (document.readyState === 'loading') {
+    await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
+  }
+  
+  // Check if required nodes already exist
+  if (hasRequired()) {
+    console.log('🏠 Required header nodes found immediately');
+    return;
+  }
+  
+  // Wait for nodes with MutationObserver + timeout
+  console.log('🏠 Waiting for header nodes...');
+  await new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (hasRequired()) {
+        console.log('🏠 Required header nodes found via observer');
+        observer.disconnect();
+        resolve();
+      }
+    });
+    
+    observer.observe(document.documentElement, { 
+      childList: true, 
+      subtree: true 
+    });
+    
+    // Timeout fallback
+    setTimeout(() => {
+      observer.disconnect();
+      console.log('🏠 Header wait timeout, proceeding anyway');
+      resolve();
+    }, 3000);
+  });
+}
+
+function mountHeaderListeners() {
+  // Remove any existing listener first
   if (window.headerClickListener) {
     document.removeEventListener('click', window.headerClickListener);
   }
   
-  // Create the click handler
-  const headerClickHandler = (event) => {
-    if (event.target.closest('#logo-button')) {
+  // Create new listener
+  window.headerClickListener = handleHeaderClick;
+  document.addEventListener('click', handleHeaderClick);
+  console.log('🏠 Header click listener mounted');
+}
+
+function handleHeaderClick(event) {
+  const target = event.target;
+  
+  // User dropdown toggle - null-safe
+  const userMenuButton = document.getElementById('user-menu-button');
+  const userDropdown = document.getElementById('user-dropdown');
+  
+  if (userMenuButton && userDropdown) {
+    const clickedButton = userMenuButton.contains(target);
+    const clickedDropdown = userDropdown.contains(target);
+    
+    if (clickedButton) {
       event.preventDefault();
-      
-      // Smart redirect based on user role
-      if (import.meta.env.DEV) {
-        try {
-          const demoProfile = localStorage.getItem('demoProfile');
-          if (demoProfile) {
-            const profile = JSON.parse(demoProfile);
-            if (profile.activeRole === 'professional') {
-              window.location.href = '/pro/dashboard';
-              return;
-            }
+      event.stopPropagation();
+      userDropdown.classList.toggle('hidden');
+      console.log('🔽 User dropdown toggled');
+      return;
+    } else if (!clickedDropdown && !userDropdown.classList.contains('hidden')) {
+      userDropdown.classList.add('hidden');
+      console.log('🔽 User dropdown closed (click outside)');
+    }
+  }
+  
+  // Logo button handling
+  if (target.closest('#logo-button')) {
+    event.preventDefault();
+    
+    // Smart redirect based on user role
+    if (import.meta.env.DEV) {
+      try {
+        const demoProfile = localStorage.getItem('demoProfile');
+        if (demoProfile) {
+          const profile = JSON.parse(demoProfile);
+          if (profile.activeRole === 'professional') {
+            window.location.href = '/pro/dashboard';
+            return;
           }
-        } catch (error) {
-          console.error('Error checking demo profile:', error);
         }
-      }
-      
-      // For authenticated users via authService
-      if (typeof authService !== 'undefined') {
-        const profile = authService.getCurrentUserProfile();
-        if (profile?.activeRole === 'professional') {
-          window.location.href = '/pro/dashboard';
-          return;
-        }
-      }
-      
-      // Default redirect
-      window.location.href = '/';
-    }
-    
-    // Mobile menu toggle
-    if (event.target.closest('#mobile-menu-button')) {
-      const mobileMenu = document.getElementById('mobile-menu');
-      if (mobileMenu) {
-        mobileMenu.classList.toggle('hidden');
+      } catch (error) {
+        console.error('Error checking demo profile:', error);
       }
     }
     
-    // Close mobile menu when clicking outside or on a link
-    if (!event.target.closest('#mobile-menu-button') && !event.target.closest('#mobile-menu')) {
-      const mobileMenu = document.getElementById('mobile-menu');
-      if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-        mobileMenu.classList.add('hidden');
+    // For authenticated users via authService
+    if (typeof authService !== 'undefined') {
+      const profile = authService.getCurrentUserProfile();
+      if (profile?.activeRole === 'professional') {
+        window.location.href = '/pro/dashboard';
+        return;
       }
     }
-
-    // User dropdown toggle
-    if (event.target.closest('#user-menu-button')) {
-      console.log('🔽 User menu button clicked');
-      const dropdown = document.getElementById('user-dropdown');
-      if (dropdown) {
-        const wasHidden = dropdown.classList.contains('hidden');
-        dropdown.classList.toggle('hidden');
-        console.log('🔽 Dropdown toggled:', wasHidden ? 'now showing' : 'now hidden');
-      } else {
-        console.log('🔽 Dropdown element not found!');
-      }
-    }
-
-    // Close dropdown when clicking outside
-    if (!event.target.closest('#user-menu-button') && !event.target.closest('#user-dropdown')) {
+    
+    // Default redirect
+    window.location.href = '/';
+  }
+  
+  // Router link handling
+  const routerLink = target.closest('[data-router-link]');
+  if (routerLink) {
+    event.preventDefault();
+    const href = routerLink.getAttribute('data-href');
+    if (href && window.navigateTo) {
+      // Close dropdown if open
       const dropdown = document.getElementById('user-dropdown');
       if (dropdown && !dropdown.classList.contains('hidden')) {
         dropdown.classList.add('hidden');
       }
+      window.navigateTo(href);
     }
-
-    // Logout button
-    if (event.target.closest('#logout-button')) {
-      handleLogout();
-    }
-  };
-  
-  // Store reference and add the listener
-  window.headerClickListener = headerClickHandler;
-  document.addEventListener('click', headerClickHandler);
-
-  // Update header based on auth state
-  updateHeaderAuthState();
-  
-  // Expose function globally for other components
-  window.updateHeaderAuthState = updateHeaderAuthState;
-  
-  // Debug function for console
-  window.debugHeader = () => {
-    console.log('🐛 Manual header debug:');
-    console.log('🐛 authService exists:', typeof authService !== 'undefined');
-    console.log('🐛 authService.getCurrentUser():', authService?.getCurrentUser()?.email);
-    console.log('🐛 authService.getCurrentUserProfile():', authService?.getCurrentUserProfile());
-    
-    // Check localStorage too
-    if (import.meta.env.DEV) {
-      console.log('🐛 localStorage demoUser:', localStorage.getItem('demoUser') ? 'exists' : 'none');
-      console.log('🐛 localStorage demoProfile:', localStorage.getItem('demoProfile') ? JSON.parse(localStorage.getItem('demoProfile')) : 'none');
-    }
-    
-    // Check DOM elements
-    const guestButtons = document.getElementById('guest-buttons');
-    const userButtons = document.getElementById('user-buttons');
-    console.log('🐛 guest-buttons visible:', guestButtons && !guestButtons.classList.contains('hidden'));
-    console.log('🐛 user-buttons visible:', userButtons && !userButtons.classList.contains('hidden'));
-    
-    updateHeaderAuthState();
-  };
-  
-  // Also call immediately
-  console.log('🚀 Calling initial header update...');
-  updateHeaderAuthState();
-  
-  // Listen for auth state changes
-  if (typeof authService !== 'undefined') {
-    authService.onAuthStateChange((user, profile) => {
-      console.log('🔔 Header received auth state change notification');
-      console.log('🔔 User:', user?.email);
-      console.log('🔔 Profile active role:', profile?.activeRole);
-      console.log('🔔 Profile available roles:', profile?.availableRoles);
-      
-      // Small delay to ensure all state is settled
-      setTimeout(() => {
-        console.log('🔄 Updating header from auth state change...');
-        updateHeaderAuthState();
-      }, 100);
-    });
   }
   
-  // Make functions available globally for debugging
-  window.forceHeaderUpdate = updateHeaderAuthState;
-  window.initializeHeader = initializeHeader;
+  // Logout handling
+  if (target.closest('#logout-button')) {
+    event.preventDefault();
+    handleLogout();
+  }
+  
+  // Mobile menu toggle
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (mobileMenuButton && mobileMenu && mobileMenuButton.contains(target)) {
+    mobileMenu.classList.toggle('hidden');
+  }
 }
 
-/**
- * Update header based on authentication state
- */
+export function applyAuthVisibility({ authenticated }) {
+  const guestButtons = document.getElementById('guest-buttons');
+  const userButtons = document.getElementById('user-buttons');
+  
+  console.log('🏠 Looking for auth buttons:', {
+    guestButtons: !!guestButtons,
+    userButtons: !!userButtons,
+    authenticated
+  });
+  
+  if (!guestButtons || !userButtons) {
+    console.warn('🏠 Auth buttons not found, skipping visibility update');
+    console.warn('🏠 Available elements with IDs:', 
+      Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+    return;
+  }
+  
+  // Use only CSS classes, never inline styles
+  guestButtons.classList.toggle('hidden', !!authenticated);
+  userButtons.classList.toggle('hidden', !authenticated);
+  
+  console.log('🏠 Auth visibility updated:', { 
+    authenticated,
+    guestHidden: guestButtons.classList.contains('hidden'),
+    userHidden: userButtons.classList.contains('hidden')
+  });
+}
+
+// Global function for manual re-sync from views that render late
+window.forceHeaderUpdate = function(authState) {
+  console.log('🏠 Force header update called:', authState);
+  
+  if (authState) {
+    applyAuthVisibility(authState);
+    if (authState.authenticated) {
+      updateUserInfo();
+    }
+  } else {
+    // Auto-detect current auth state
+    const currentAuth = getCurrentAuthState();
+    applyAuthVisibility(currentAuth);
+    if (currentAuth.authenticated) {
+      updateUserInfo();
+    }
+  }
+};
+
+function getCurrentAuthState() {
+  // Adapt this to your auth system
+  if (typeof authService !== 'undefined' && authService.getCurrentUser) {
+    return { authenticated: !!authService.getCurrentUser() };
+  }
+  
+  // Fallback for demo mode
+  const demoProfile = localStorage.getItem('demoProfile');
+  return { authenticated: !!demoProfile };
+}
+
+function getCurrentUser() {
+  console.log('🔍 getCurrentUser() called');
+  console.log('🔍 authService available:', typeof authService !== 'undefined');
+  console.log('🔍 window.authService available:', typeof window.authService !== 'undefined');
+  
+  // Try multiple ways to access authService
+  let user = null;
+  
+  if (typeof authService !== 'undefined' && authService?.getCurrentUser) {
+    user = authService.getCurrentUser();
+    console.log('🔍 authService.getCurrentUser():', user?.email || 'null');
+  } else if (typeof window.authService !== 'undefined' && window.authService?.getCurrentUser) {
+    user = window.authService.getCurrentUser();
+    console.log('🔍 window.authService.getCurrentUser():', user?.email || 'null');
+  } else {
+    // Demo mode fallback
+    const demoUser = localStorage.getItem('demoUser');
+    user = demoUser ? JSON.parse(demoUser) : null;
+    console.log('🔍 Demo user from localStorage:', user?.email || 'null');
+  }
+  
+  return user;
+}
+
+function getCurrentProfile() {
+  console.log('🔍 getCurrentProfile() called');
+  
+  // Try multiple ways to access authService
+  let profile = null;
+  
+  if (typeof authService !== 'undefined' && authService?.getCurrentUserProfile) {
+    profile = authService.getCurrentUserProfile();
+    console.log('🔍 authService.getCurrentUserProfile():', profile?.activeRole || 'null');
+  } else if (typeof window.authService !== 'undefined' && window.authService?.getCurrentUserProfile) {
+    profile = window.authService.getCurrentUserProfile();
+    console.log('🔍 window.authService.getCurrentUserProfile():', profile?.activeRole || 'null');
+  } else {
+    // Demo mode fallback
+    const demoProfile = localStorage.getItem('demoProfile');
+    profile = demoProfile ? JSON.parse(demoProfile) : null;
+    console.log('🔍 Demo profile from localStorage:', profile?.activeRole || 'null');
+  }
+  
+  return profile;
+}
+
 function updateHeaderAuthState() {
   console.log('🔄 Updating header auth state...');
   
-  let user = null;
-  let profile = null;
-
-  // Always prioritize authService if available
-  if (typeof authService !== 'undefined') {
-    user = authService.getCurrentUser();
-    profile = authService.getCurrentUserProfile();
-    console.log('🔄 Auth service user:', user?.email);
-    console.log('🔄 Auth service profile roles:', profile?.availableRoles);
-    console.log('🔄 Auth service profile activeRole:', profile?.activeRole);
-  }
-
-  // Fallback to localStorage in dev mode if authService doesn't have data
-  if ((!user || !profile) && import.meta.env.DEV) {
-    try {
-      const demoUser = localStorage.getItem('demoUser');
-      const demoProfile = localStorage.getItem('demoProfile');
-      
-      console.log('🔄 Fallback: Demo user from localStorage:', demoUser ? 'found' : 'not found');
-      console.log('🔄 Fallback: Demo profile from localStorage:', demoProfile ? 'found' : 'not found');
-      
-      if (demoUser && demoProfile) {
-        user = JSON.parse(demoUser);
-        profile = JSON.parse(demoProfile);
-        console.log('🔄 Fallback: Parsed demo user:', user?.email);
-        console.log('🔄 Fallback: Parsed demo profile roles:', profile?.availableRoles);
-        console.log('🔄 Fallback: Parsed demo profile activeRole:', profile?.activeRole);
-      }
-    } catch (error) {
-      console.error('Error reading demo user from localStorage:', error);
-    }
-  }
-
-  const guestButtons = document.getElementById('guest-buttons');
-  const userButtons = document.getElementById('user-buttons');
-  const userName = document.getElementById('user-name');
-  const userAvatar = document.getElementById('user-avatar');
-  const roleBadge = document.getElementById('role-badge');
-
+  const user = getCurrentUser();
+  const profile = getCurrentProfile();
+  
   if (user && profile) {
     console.log('🔄 User authenticated, showing user buttons');
-    // User is authenticated - show user buttons, hide guest buttons
-    if (guestButtons) guestButtons.classList.add('hidden');
-    if (userButtons) {
-      userButtons.classList.remove('hidden');
-      userButtons.classList.add('flex');
-    }
-    
-    // Update user info
-    if (userName) userName.textContent = profile.displayName || user.email;
-    if (userAvatar) userAvatar.textContent = getInitials(profile.displayName || user.email);
-    if (roleBadge) {
-      const roleText = profile.activeRole === 'professional' ? 'Profesional' : 'Cliente';
-      roleBadge.textContent = `Modo: ${roleText}`;
-      console.log('🔄 Updated role badge to:', roleText);
-    }
-
-    // Populate role switcher menu
-    const roleSwitcherMenu = document.getElementById('role-switcher-menu');
-    const availableRoles = profile.availableRoles || [];
-    
-    console.log('🔄 Populating role menu with roles:', availableRoles);
-    if (roleSwitcherMenu) {
-      populateRoleSwitcherMenu(roleSwitcherMenu, availableRoles, profile.activeRole);
-    }
+    applyAuthVisibility({ authenticated: true });
+    updateUserInfo();
   } else {
     console.log('🔄 User NOT authenticated, showing guest buttons');
-    // User not authenticated - show guest buttons, hide user buttons
-    if (guestButtons) guestButtons.classList.remove('hidden');
-    if (userButtons) {
-      userButtons.classList.add('hidden');
-      userButtons.classList.remove('flex');
-    }
+    applyAuthVisibility({ authenticated: false });
   }
 }
 
-/**
- * Handle user logout
- */
+function updateUserInfo() {
+  const user = getCurrentUser();
+  const profile = getCurrentProfile();
+  
+  if (!user || !profile) return;
+  
+  const userName = document.getElementById('user-name');
+  const userAvatar = document.getElementById('user-avatar');
+  const roleBadge = document.getElementById('role-badge');
+  
+  // Update user info
+  if (userName) userName.textContent = profile.displayName || user.email?.split('@')[0] || 'Usuario';
+  if (userAvatar) userAvatar.textContent = getInitials(profile.displayName || user.email);
+  if (roleBadge) {
+    const roleText = profile.activeRole === 'professional' ? 'Profesional' : 'Cliente';
+    roleBadge.textContent = roleText;
+  }
+  
+  // Populate role switcher menu
+  const roleSwitcherMenu = document.getElementById('role-switcher-menu');
+  if (roleSwitcherMenu && profile.availableRoles) {
+    populateRoleSwitcherMenu(roleSwitcherMenu, profile.availableRoles, profile.activeRole);
+  }
+}
+
+function getInitials(name) {
+  if (!name) return 'U';
+  return name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+}
+
 async function handleLogout() {
   console.log('🚪 Logout button clicked');
   const confirmed = confirm('¿Estás seguro que deseas cerrar sesión?');
@@ -409,161 +510,64 @@ async function handleLogout() {
       window.location.href = '/';
       return;
     }
-
-    // For production, use auth service
-    if (typeof authService !== 'undefined') {
-      console.log('🚪 Production logout using authService');
-      const result = await authService.logout();
-      if (result.success) {
-        console.log('🚪 AuthService logout successful');
-        window.location.href = '/';
-      } else {
-        console.error('🚪 AuthService logout failed:', result.error);
-        alert('Error al cerrar sesión: ' + result.error);
-      }
+    
+    // Use authService for real logout
+    if (typeof authService !== 'undefined' && authService.logout) {
+      await authService.logout();
+      console.log('🚪 User logged out via authService');
+      updateHeaderAuthState();
+      window.location.href = '/';
     }
   } catch (error) {
-    console.error('🚪 Logout error:', error);
-    alert('Error al cerrar sesión');
+    console.error('🚪 Error during logout:', error);
+    alert('Error al cerrar sesión. Por favor intenta de nuevo.');
   }
 }
 
-/**
- * Get user initials for avatar
- */
-function getInitials(name) {
-  if (!name) return '?';
+function populateRoleSwitcherMenu(menuContainer, availableRoles, activeRole) {
+  if (!menuContainer || !availableRoles) return;
   
-  const names = name.split(' ');
-  if (names.length >= 2) {
-    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
-  } else {
-    return names[0].charAt(0).toUpperCase();
-  }
-}
-
-/**
- * Populate role switcher menu
- */
-function populateRoleSwitcherMenu(menuContainer, availableRoles, currentRole) {
   menuContainer.innerHTML = '';
-
-  if (availableRoles.length <= 1) {
-    // Only one role or no roles - show add role options
-    if (!availableRoles.includes('customer')) {
-      const addCustomerBtn = document.createElement('button');
-      addCustomerBtn.className = 'block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100';
-      addCustomerBtn.innerHTML = '👤 Agregar Rol Cliente';
-      addCustomerBtn.addEventListener('click', () => addRole('customer'));
-      menuContainer.appendChild(addCustomerBtn);
+  
+  availableRoles.forEach(role => {
+    if (role !== activeRole) {
+      const button = document.createElement('button');
+      button.className = 'block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+      button.textContent = role === 'professional' ? 'Cambiar a Profesional' : 'Cambiar a Cliente';
+      button.addEventListener('click', () => switchToRole(role));
+      menuContainer.appendChild(button);
     }
+  });
+}
 
-    if (!availableRoles.includes('professional')) {
-      const addProfessionalBtn = document.createElement('button');
-      addProfessionalBtn.className = 'block w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-gray-100';
-      addProfessionalBtn.innerHTML = '👩‍💼 Agregar Rol Profesional';
-      addProfessionalBtn.addEventListener('click', () => addRole('professional'));
-      menuContainer.appendChild(addProfessionalBtn);
-    }
-
-    if (availableRoles.length === 0) {
-      menuContainer.innerHTML = '<div class="px-4 py-2 text-sm text-gray-500">Sin roles disponibles</div>';
+function switchToRole(newRole) {
+  console.log('🔄 Switching to role:', newRole);
+  
+  if (import.meta.env.DEV) {
+    // Demo mode
+    const demoProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+    demoProfile.activeRole = newRole;
+    localStorage.setItem('demoProfile', JSON.stringify(demoProfile));
+    
+    // Update header
+    updateHeaderAuthState();
+    
+    // Navigate to appropriate page
+    if (newRole === 'professional') {
+      window.location.href = '/pro/dashboard';
+    } else {
+      window.location.href = '/marketplace';
     }
   } else {
-    // Multiple roles - show switch options
-    availableRoles.forEach(role => {
-      const roleButton = document.createElement('button');
-      roleButton.className = `block w-full text-left px-4 py-2 text-sm transition-colors ${
-        role === currentRole 
-          ? 'bg-brand text-white font-medium' 
-          : 'text-gray-700 hover:bg-gray-100'
-      }`;
-      
-      const roleIcon = role === 'professional' ? '👩‍💼' : '👤';
-      const roleText = role === 'professional' ? 'Profesional' : 'Cliente';
-      
-      roleButton.innerHTML = `${roleIcon} ${roleText} ${role === currentRole ? '✓' : ''}`;
-      
-      if (role !== currentRole) {
-        roleButton.addEventListener('click', () => switchToRole(role));
-      }
-      
-      menuContainer.appendChild(roleButton);
-    });
-  }
-}
-
-/**
- * Add new role to user account
- */
-async function addRole(role) {
-  const confirmed = confirm(`¿Quieres agregar el rol de ${role === 'professional' ? 'profesional' : 'cliente'} a tu cuenta?`);
-  if (!confirmed) return;
-
-  try {
-    console.log('🔄 Adding role:', role);
-    if (typeof authService !== 'undefined') {
-      const result = await authService.addRole(role);
-      console.log('🔄 AddRole result:', result);
-      
-      if (result.success) {
-        alert(`¡Rol ${role === 'professional' ? 'profesional' : 'cliente'} agregado exitosamente!`);
-        
-        // Wait a bit for the state to update, then refresh header
-        setTimeout(() => {
-          console.log('🔄 Refreshing header after role add...');
-          updateHeaderAuthState();
-        }, 500);
-      } else {
-        alert('Error al agregar rol: ' + result.error);
-      }
+    // Use authService for real role switch
+    if (typeof authService !== 'undefined' && authService.switchRole) {
+      authService.switchRole(newRole);
     }
-  } catch (error) {
-    console.error('Error adding role:', error);
-    alert('Error inesperado al agregar rol');
   }
 }
 
-/**
- * Switch to different role
- */
-async function switchToRole(newRole) {
-  try {
-    console.log('🔄 Switching to role:', newRole);
-    if (typeof authService !== 'undefined') {
-      const result = await authService.switchRole(newRole);
-      console.log('🔄 SwitchRole result:', result);
-      
-      if (result.success) {
-        console.log('🎭 Role switch successful, updating header immediately...');
-        updateHeaderAuthState();
-        
-        // Small delay to ensure UI updates before redirect
-        setTimeout(() => {
-          if (newRole === 'professional') {
-            console.log('🏠 Redirecting professional to dashboard...');
-            window.location.href = '/pro/dashboard';
-          } else {
-            console.log('🏠 Professional switching to customer, staying on current page...');
-            // Don't redirect customers automatically - let them stay where they are
-            // Unless they're on a professional-only page
-            const currentPath = window.location.pathname;
-            if (currentPath.startsWith('/pro/')) {
-              console.log('🏠 Customer on pro page, redirecting to marketplace...');
-              window.location.href = '/marketplace';
-            } else {
-              console.log('🏠 Customer can stay on current page');
-            }
-          }
-        }, 200);
-      } else {
-        alert('Error al cambiar rol: ' + result.error);
-      }
-    }
-  } catch (error) {
-    console.error('Error switching role:', error);
-    alert('Error inesperado al cambiar rol');
-  }
-}
+// Expose functions globally
+window.updateHeaderAuthState = updateHeaderAuthState;
+window.initializeHeader = initializeHeader;
 
-export default renderHeader;
+export default { renderHeader, initializeHeader, applyAuthVisibility };

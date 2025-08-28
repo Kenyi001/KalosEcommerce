@@ -33,7 +33,17 @@ export function renderWithLayout(content, options = {}) {
  * Initialize layout interactions
  */
 export function initializeLayout() {
-  initializeHeader();
+  console.log('🏗️ Initializing layout...');
+  
+  // Always reinitialize header after layout render
+  // Reset the mounted flag to ensure proper reinitialization
+  window.__headerMounted = false;
+  
+  initializeHeader().then(() => {
+    console.log('🏗️ Layout initialized successfully');
+  }).catch(error => {
+    console.error('🏗️ Layout initialization error:', error);
+  });
 }
 
 export default renderWithLayout;
