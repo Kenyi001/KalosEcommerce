@@ -1,3 +1,10 @@
+/* Kalos Design System */
+@import './design-system.css';
+
+/* Component Styles */
+@import '../components/atoms/Button/Button.css';
+@import '../components/molecules/FormField/FormField.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,12 +15,14 @@
   body {
     font-family: 'Inter', system-ui, sans-serif;
     line-height: 1.6;
-    color: theme('colors.kalos-black');
+    color: #261B15; /* kalos-black for better contrast */
+    background-color: #FAFAFA; /* kalos-white */
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Fraunces', Georgia, serif;
     line-height: 1.25;
+    color: #261B15; /* Ensure headings are dark */
   }
   
   button:focus,
@@ -38,7 +47,8 @@
   }
   
   .card {
-    @apply bg-kalos-white rounded-lg shadow-base p-6;
+    @apply bg-white rounded-lg shadow-base p-6;
+    color: #261B15; /* Ensure text is dark on white cards */
   }
   
   .form-input {
@@ -67,4 +77,58 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Additional utility classes for better contrast */
+@layer utilities {
+  .text-kalos-black {
+    color: #261B15 !important;
+  }
+  
+  .text-navy-dark {
+    color: #303F56 !important;
+  }
+  
+  .bg-white-pure {
+    background-color: #FFFFFF !important;
+  }
+  
+  .text-contrast-high {
+    color: #1F2937 !important; /* Very dark gray for maximum contrast */
+  }
+  
+  .text-display-lg {
+    font-size: 2rem;
+    line-height: 1.25;
+    font-weight: 700;
+    color: #303F56; /* Navy for headers */
+  }
+  
+  .text-display-md {
+    font-size: 1.5rem;
+    line-height: 1.25; 
+    font-weight: 600;
+    color: #303F56; /* Navy for headers */
+  }
+  
+  /* Fix for price range inputs */
+  .price-inputs {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .price-inputs .price-min,
+  .price-inputs .price-max {
+    flex: 1 !important;
+    min-width: 0 !important; /* Prevents flex items from growing beyond container */
+    max-width: calc(50% - 0.25rem) !important; /* Ensure they don't overflow */
+  }
+  
+  .price-inputs span {
+    flex-shrink: 0 !important;
+    color: #9CA3AF !important; /* gray-400 */
+  }
 }
