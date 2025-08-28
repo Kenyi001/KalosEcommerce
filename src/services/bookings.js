@@ -14,7 +14,9 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  runTransaction,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../config/firebase-config.js';
 
@@ -53,11 +55,33 @@ export class BookingService {
       const totalPrice = this.calculateTotalPrice(bookingData.service);
       const advancePayment = Math.round(totalPrice * 0.3); // 30% adelanto
 
+      // 4. Get professional info for booking (in demo mode)
+      let professionalInfo = {};
+      if (import.meta.env.DEV) {
+        try {
+          const demoProfessionals = JSON.parse(localStorage.getItem('demoProfessionals') || '[]');
+          const professional = demoProfessionals.find(p => p.id === bookingData.professionalId);
+          if (professional) {
+            professionalInfo = {
+              id: professional.id,
+              name: professional.name,
+              phone: professional.phone,
+              email: professional.email
+            };
+          }
+        } catch (error) {
+          console.warn('⚠️ Could not get professional info:', error);
+        }
+      }
+
       // 4. Create booking document
       const booking = {
         customerId: bookingData.customerId,
         professionalId: bookingData.professionalId,
         serviceId: bookingData.serviceId,
+        
+        // Professional info (for display)
+        professional: professionalInfo,
         
         // Scheduling
         scheduledDate: bookingData.scheduledDate,
@@ -111,13 +135,32 @@ export class BookingService {
         autoConfirmMinutes: 60,
         remindersSent: [],
         
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        createdAt: import.meta.env.DEV ? new Date() : serverTimestamp(),
+        updatedAt: import.meta.env.DEV ? new Date() : serverTimestamp()
       };
 
-      // 5. Save to Firestore
-      const docRef = await addDoc(collection(db, this.collection), booking);
-      console.log('📅 Booking created with ID:', docRef.id);
+      let bookingId;
+      let savedBooking;
+
+      // 5. Save booking (Firestore or localStorage for demo)
+      if (import.meta.env.DEV) {
+        // In development, save to localStorage for demo
+        bookingId = `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        savedBooking = { id: bookingId, ...booking };
+        
+        // Save to localStorage for demo
+        const existingBookings = JSON.parse(localStorage.getItem('demoUserBookings') || '[]');
+        existingBookings.push(savedBooking);
+        localStorage.setItem('demoUserBookings', JSON.stringify(existingBookings));
+        
+        console.log('📅 Demo booking saved to localStorage with ID:', bookingId);
+      } else {
+        // Production: save to Firestore
+        const docRef = await addDoc(collection(db, this.collection), booking);
+        bookingId = docRef.id;
+        savedBooking = { id: bookingId, ...booking };
+        console.log('📅 Booking created in Firestore with ID:', bookingId);
+      }
 
       // 6. Update availability
       await this.updateAvailability(
@@ -125,16 +168,16 @@ export class BookingService {
         bookingData.scheduledDate,
         bookingData.scheduledTime,
         bookingData.service.totalDuration,
-        docRef.id
+        bookingId
       );
 
       // 7. Send notifications (placeholder)
-      await this.sendBookingNotifications(docRef.id, 'created');
+      await this.sendBookingNotifications(bookingId, 'created');
 
       return {
         success: true,
-        id: docRef.id,
-        booking: { id: docRef.id, ...booking }
+        id: bookingId,
+        booking: savedBooking
       };
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -197,6 +240,9 @@ export class BookingService {
       console.log('📋 Required slots:', requiredSlots);
 
       // Check if all required slots are available
+      console.log('🔍 Available time slots:', availability.timeSlots);
+      console.log('🔍 Required slots:', requiredSlots);
+      
       const allSlotsAvailable = requiredSlots.every(requiredSlot => {
         const timeSlot = availability.timeSlots.find(slot => 
           slot.start === requiredSlot.start && slot.end === requiredSlot.end
@@ -204,6 +250,7 @@ export class BookingService {
         
         if (!timeSlot) {
           console.log('❌ Time slot not found:', requiredSlot);
+          console.log('📋 Available slots:', availability.timeSlots.map(s => `${s.start}-${s.end}`));
           return false;
         }
         
@@ -212,10 +259,11 @@ export class BookingService {
           return false;
         }
         
+        console.log('✅ Time slot available:', requiredSlot);
         return true;
       });
 
-      console.log('✅ All slots available:', allSlotsAvailable);
+      console.log('🎯 Final result - All slots available:', allSlotsAvailable);
       return allSlotsAvailable;
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -552,6 +600,45 @@ export class BookingService {
     try {
       console.log('📅 Updating availability:', { professionalId, date, time, duration, bookingId });
 
+      // In development mode, update localStorage availability first
+      if (import.meta.env.DEV) {
+        try {
+          const demoAvailability = localStorage.getItem('demoAvailability');
+          if (demoAvailability) {
+            const availabilityData = JSON.parse(demoAvailability);
+            if (availabilityData[professionalId] && availabilityData[professionalId][date]) {
+              const availability = availabilityData[professionalId][date];
+              const requiredSlots = this.calculateRequiredSlots(time, duration);
+              
+              availability.timeSlots = availability.timeSlots.map(slot => {
+                const isRequiredSlot = requiredSlots.some(rs => 
+                  rs.start === slot.start && rs.end === slot.end
+                );
+                
+                if (isRequiredSlot) {
+                  return {
+                    ...slot,
+                    available: false,
+                    bookingId: bookingId,
+                    locked: false,
+                    lockedUntil: null
+                  };
+                }
+                return slot;
+              });
+              
+              // Save updated availability back to localStorage
+              localStorage.setItem('demoAvailability', JSON.stringify(availabilityData));
+              console.log('📅 Demo availability updated in localStorage');
+              return;
+            }
+          }
+        } catch (error) {
+          console.warn('⚠️ Error updating demo availability:', error);
+        }
+      }
+
+      // Fallback to Firestore for production
       const availabilityQuery = query(
         collection(db, this.availabilityCollection),
         where('professionalId', '==', professionalId),
@@ -697,20 +784,26 @@ export class BookingService {
    */
   static getDemoBookings(userId, role) {
     try {
+      console.log('🔍 Getting demo bookings for user:', { userId, role });
+      
       // For demo purposes, create some sample bookings
       const now = new Date();
       const demoBookings = [];
       
       // Check if there are any bookings in localStorage from actual booking creation
       const existingBookings = JSON.parse(localStorage.getItem('demoUserBookings') || '[]');
+      console.log('📋 Found existing bookings in localStorage:', existingBookings.length);
       
       // Add any existing bookings for this user
       const userBookings = existingBookings.filter(booking => {
-        return role === 'professional' ? 
+        const matches = role === 'professional' ? 
           booking.professionalId === userId : 
           booking.customerId === userId;
+        console.log('🔍 Checking booking:', booking.id, 'matches user:', matches);
+        return matches;
       });
       
+      console.log('📋 User bookings found:', userBookings.length);
       demoBookings.push(...userBookings);
       
       // If no existing bookings, create some sample ones for demo
@@ -807,6 +900,251 @@ export class BookingService {
   static async processRefund(bookingId, amount) {
     console.log(`💰 Processing refund of Bs.${amount} for booking ${bookingId}`);
     // This will be implemented when payment system is ready
+  }
+}
+
+// ============================================================================
+// NEW TRANSACTIONAL AVAILABILITY SYSTEM
+// ============================================================================
+
+// Configuración
+const IS_DEMO = import.meta.env.DEV; // true en desarrollo
+const ALLOW_CHAINED_SLOTS = true;
+
+/**
+ * Verifica y reserva disponibilidad usando transacciones
+ * @param {Object} params - Parámetros de disponibilidad
+ * @param {string} params.professionalId - ID del profesional
+ * @param {string} params.date - Fecha en formato YYYY-MM-DD
+ * @param {string} params.time - Hora en formato HH:MM
+ * @param {number} params.duration - Duración en minutos
+ * @returns {Promise<Object>} Resultado de la verificación
+ */
+export async function checkAvailabilityTransactional({ professionalId, date, time, duration }) {
+  console.log('🔍 Checking availability:', { professionalId, date, time, duration });
+  
+  const docId = `${professionalId}_${date}`;
+  const availabilityRef = doc(db, 'availability', docId);
+  
+  try {
+    return await runTransaction(db, async (transaction) => {
+      // 1. Leer documento de disponibilidad
+      let availabilityDoc = await transaction.get(availabilityRef);
+      
+      // 2. Crear documento si no existe (solo en modo DEMO)
+      if (!availabilityDoc.exists()) {
+        if (IS_DEMO) {
+          console.log('📅 Creating demo availability document for:', docId);
+          const slots = buildFallbackSlots();
+          const newData = {
+            professionalId,
+            date,
+            timezone: 'America/La_Paz',
+            slots,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          
+          transaction.set(availabilityRef, newData);
+          availabilityDoc = { 
+            exists: () => true, 
+            data: () => newData 
+          };
+        } else {
+          throw new Error(`No availability document found for ${professionalId} on ${date}. Please ensure availability data is pre-seeded.`);
+        }
+      }
+      
+      // 3. Validar disponibilidad
+      const data = availabilityDoc.data();
+      const slots = data.slots || {};
+      
+      const requestedSlot = slots[time];
+      if (!requestedSlot) {
+        throw new Error(`Slot ${time} no existe`);
+      }
+      
+      if (requestedSlot.status !== 'free') {
+        throw new Error(`Horario ${time} no disponible (estado: ${requestedSlot.status})`);
+      }
+      
+      // 4. Manejar duración
+      const slotDuration = requestedSlot.duration || 60;
+      const updatedSlots = { ...slots };
+      
+      if (duration <= slotDuration) {
+        // Duración simple: cabe en un slot
+        updatedSlots[time] = {
+          ...requestedSlot,
+          status: 'held', // Reservado temporalmente
+          heldAt: serverTimestamp()
+        };
+      } else if (duration === 120 && ALLOW_CHAINED_SLOTS && slotDuration === 60) {
+        // Duración 120min: necesita dos slots de 60min consecutivos
+        const nextTime = getNextHour(time);
+        const nextSlot = slots[nextTime];
+        
+        if (!nextSlot) {
+          throw new Error(`No hay slot consecutivo disponible después de ${time} para duración de 120 minutos`);
+        }
+        
+        if (nextSlot.status !== 'free') {
+          throw new Error(`Slot consecutivo ${nextTime} no disponible para duración de 120 minutos`);
+        }
+        
+        if ((nextSlot.duration || 60) !== 60) {
+          throw new Error(`Slot consecutivo ${nextTime} no es de 60 minutos, no se puede encadenar`);
+        }
+        
+        // Reservar ambos slots
+        updatedSlots[time] = {
+          ...requestedSlot,
+          status: 'held',
+          heldAt: serverTimestamp(),
+          chainedWith: nextTime
+        };
+        updatedSlots[nextTime] = {
+          ...nextSlot,
+          status: 'held',
+          heldAt: serverTimestamp(),
+          chainedWith: time
+        };
+        
+        console.log('🔗 Reserved chained slots for 120min:', time, '+', nextTime);
+      } else {
+        throw new Error(`Duración ${duration} minutos no soportada. Disponible: ${slotDuration}min o 120min (con encadenamiento)`);
+      }
+      
+      // 5. Actualizar documento
+      transaction.update(availabilityRef, {
+        slots: updatedSlots,
+        updatedAt: serverTimestamp()
+      });
+      
+      console.log('✅ Availability reserved successfully');
+      return {
+        success: true,
+        reservedSlots: duration === 120 && ALLOW_CHAINED_SLOTS ? [time, getNextHour(time)] : [time]
+      };
+    });
+    
+  } catch (error) {
+    console.error('❌ Availability check failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Genera slots de fallback para modo demo
+ */
+function buildFallbackSlots() {
+  const demoHours = [
+    '09:00', '10:00', '11:00', '12:00',
+    '14:00', '15:00', '16:00', '17:00', '18:00'
+  ];
+  
+  const slots = {};
+  for (const hour of demoHours) {
+    slots[hour] = {
+      duration: 60,
+      status: 'free',
+      createdAt: new Date().toISOString()
+    };
+  }
+  
+  console.log('📅 Built fallback slots:', Object.keys(slots).length);
+  return slots;
+}
+
+/**
+ * Calcula la siguiente hora en formato HH:MM
+ */
+function getNextHour(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const date = new Date(2000, 0, 1, hours, minutes);
+  date.setHours(date.getHours() + 1);
+  
+  return date.toTimeString().slice(0, 5); // "HH:MM"
+}
+
+/**
+ * Libera slots que estaban en estado 'held'
+ */
+export async function releaseHeldSlots({ professionalId, date, slots }) {
+  const docId = `${professionalId}_${date}`;
+  const availabilityRef = doc(db, 'availability', docId);
+  
+  try {
+    await runTransaction(db, async (transaction) => {
+      const doc = await transaction.get(availabilityRef);
+      if (!doc.exists()) return;
+      
+      const data = doc.data();
+      const updatedSlots = { ...data.slots };
+      
+      slots.forEach(time => {
+        if (updatedSlots[time] && updatedSlots[time].status === 'held') {
+          updatedSlots[time] = {
+            ...updatedSlots[time],
+            status: 'free',
+            heldAt: null,
+            chainedWith: null
+          };
+        }
+      });
+      
+      transaction.update(availabilityRef, {
+        slots: updatedSlots,
+        updatedAt: serverTimestamp()
+      });
+    });
+    
+    console.log('🔓 Released held slots:', slots);
+  } catch (error) {
+    console.error('❌ Failed to release held slots:', error);
+    throw error;
+  }
+}
+
+/**
+ * Confirma la reserva cambiando slots de 'held' a 'booked'
+ */
+export async function confirmBookedSlots({ professionalId, date, slots, bookingId }) {
+  const docId = `${professionalId}_${date}`;
+  const availabilityRef = doc(db, 'availability', docId);
+  
+  try {
+    await runTransaction(db, async (transaction) => {
+      const doc = await transaction.get(availabilityRef);
+      if (!doc.exists()) {
+        throw new Error('Availability document not found during booking confirmation');
+      }
+      
+      const data = doc.data();
+      const updatedSlots = { ...data.slots };
+      
+      slots.forEach(time => {
+        if (updatedSlots[time] && updatedSlots[time].status === 'held') {
+          updatedSlots[time] = {
+            ...updatedSlots[time],
+            status: 'booked',
+            bookedAt: serverTimestamp(),
+            bookingId,
+            heldAt: null
+          };
+        }
+      });
+      
+      transaction.update(availabilityRef, {
+        slots: updatedSlots,
+        updatedAt: serverTimestamp()
+      });
+    });
+    
+    console.log('📅 Confirmed booked slots:', slots, 'for booking:', bookingId);
+  } catch (error) {
+    console.error('❌ Failed to confirm booked slots:', error);
+    throw error;
   }
 }
 
