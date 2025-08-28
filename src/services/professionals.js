@@ -149,6 +149,17 @@ class ProfessionalService {
     try {
       let professionalQuery = collection(db, 'professionals');
       
+      // NOTE: Esta query requiere índice compuesto en Firestore
+      // Para crear el índice, usa el link autogenerado que aparece en los logs de la consola:
+      // https://console.firebase.google.com/project/[PROJECT]/firestore/indexes?create_composite=...
+      // 
+      // Campos del índice requerido para búsqueda básica:
+      // - status (==)
+      // - verification.status (==) 
+      // - __name__ (asc) - agregado automáticamente
+      //
+      // Si se usa con filtros adicionales (categoría, ubicación, orderBy), requerirá índices adicionales
+      
       // Base filters for active verified professionals
       const constraints = [
         where('status', '==', 'active'),
@@ -424,6 +435,18 @@ class ProfessionalService {
    */
   async getFeaturedProfessionals(limit = 8) {
     try {
+      // NOTE: Esta query requiere índice compuesto en Firestore para profesionales destacados
+      // Para crear el índice, usa el link autogenerado que aparece en los logs de la consola:
+      // https://console.firebase.google.com/project/[PROJECT]/firestore/indexes?create_composite=...
+      // 
+      // Campos del índice requerido para profesionales destacados:
+      // - status (==)
+      // - verification.status (==)
+      // - stats.averageRating (>=)  
+      // - stats.averageRating (desc) - para orderBy
+      // - stats.totalReviews (desc) - para orderBy secundario
+      // - __name__ (asc) - agregado automáticamente
+      
       const featuredQuery = query(
         collection(db, 'professionals'),
         where('status', '==', 'active'),
