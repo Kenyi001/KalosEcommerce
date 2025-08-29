@@ -431,7 +431,11 @@ function getCurrentProfile() {
   
   if (typeof authService !== 'undefined' && authService?.getCurrentUserProfile) {
     profile = authService.getCurrentUserProfile();
-    console.log('🔍 authService.getCurrentUserProfile():', profile?.activeRole || 'null');
+    console.log('🔍 authService.getCurrentUserProfile():', {
+      activeRole: profile?.activeRole || 'null',
+      availableRoles: profile?.availableRoles || [],
+      hasProfile: !!profile
+    });
   } else if (typeof window.authService !== 'undefined' && window.authService?.getCurrentUserProfile) {
     profile = window.authService.getCurrentUserProfile();
     console.log('🔍 window.authService.getCurrentUserProfile():', profile?.activeRole || 'null');
@@ -540,29 +544,98 @@ function populateRoleSwitcherMenu(menuContainer, availableRoles, activeRole) {
   });
 }
 
-function switchToRole(newRole) {
+async function switchToRole(newRole) {
   console.log('🔄 Switching to role:', newRole);
   
-  if (import.meta.env.DEV) {
-    // Demo mode
-    const demoProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
-    demoProfile.activeRole = newRole;
-    localStorage.setItem('demoProfile', JSON.stringify(demoProfile));
-    
-    // Update header
-    updateHeaderAuthState();
-    
-    // Navigate to appropriate page
-    if (newRole === 'professional') {
-      window.location.href = '/pro/dashboard';
+  // Check if we have a real Firebase user or demo user
+  const hasRealUser = authService && authService.getCurrentUser();
+  const hasDemoUser = localStorage.getItem('demoUser') || localStorage.getItem('demoProfile');
+  
+  // Close dropdown immediately
+  const dropdown = document.getElementById('user-dropdown');
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    dropdown.classList.add('hidden');
+  }
+  
+  try {
+    if (hasRealUser && authService.switchRole) {
+      // Use authService for real Firebase users
+      console.log('🔄 Using authService.switchRole for real user');
+      
+      const result = await authService.switchRole(newRole);
+      
+      if (result.success) {
+        console.log('🔄 Role switched successfully to:', newRole);
+        
+        // Force header update after role switch
+        setTimeout(() => {
+          updateHeaderAuthState();
+        }, 100);
+        
+        // Navigate to appropriate page with a slight delay to ensure state is updated
+        setTimeout(() => {
+          if (newRole === 'professional') {
+            console.log('🔄 Navigating to professional dashboard');
+            window.location.href = '/pro/dashboard';
+          } else {
+            console.log('🔄 Navigating to marketplace');
+            window.location.href = '/marketplace';
+          }
+        }, 300);
+        
+      } else {
+        console.error('🔄 Role switch failed:', result.error);
+        alert('Error al cambiar rol: ' + result.error);
+      }
+      
+    } else if (hasDemoUser) {
+      // Demo mode fallback
+      console.log('🔄 Using demo mode role switch');
+      
+      try {
+        const demoProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+        
+        // Check if role is available
+        if (!demoProfile.availableRoles || !demoProfile.availableRoles.includes(newRole)) {
+          console.error('🔄 Demo user does not have access to role:', newRole);
+          alert(`No tienes acceso al rol: ${newRole}`);
+          return;
+        }
+        
+        demoProfile.activeRole = newRole;
+        demoProfile.updatedAt = new Date().toISOString();
+        localStorage.setItem('demoProfile', JSON.stringify(demoProfile));
+        
+        console.log('🔄 Demo role switched successfully to:', newRole);
+        
+        // Force header update
+        setTimeout(() => {
+          updateHeaderAuthState();
+        }, 100);
+        
+        // Navigate to appropriate page
+        setTimeout(() => {
+          if (newRole === 'professional') {
+            console.log('🔄 Navigating to professional dashboard');
+            window.location.href = '/pro/dashboard';
+          } else {
+            console.log('🔄 Navigating to marketplace');
+            window.location.href = '/marketplace';
+          }
+        }, 300);
+        
+      } catch (error) {
+        console.error('🔄 Error parsing demo profile:', error);
+        alert('Error al cambiar rol');
+      }
+      
     } else {
-      window.location.href = '/marketplace';
+      console.error('🔄 No authentication method available for role switch');
+      alert('Usuario no autenticado');
     }
-  } else {
-    // Use authService for real role switch
-    if (typeof authService !== 'undefined' && authService.switchRole) {
-      authService.switchRole(newRole);
-    }
+  } catch (error) {
+    console.error('🔄 Unexpected error during role switch:', error);
+    alert('Error inesperado al cambiar rol');
   }
 }
 
