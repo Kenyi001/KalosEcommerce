@@ -20,7 +20,7 @@ export function renderFooter() {
             </p>
             <div class="mt-4">
               <p class="text-sm text-gray-400">
-                📍 Bolivia • 📞 +591 70000000 • ✉️ hola@kalos.bo
+                📍 Bolivia • 📞 +591 69200829 • ✉️ hola@kalos.bo
               </p>
             </div>
           </div>

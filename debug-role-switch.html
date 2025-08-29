@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Role Switch - Kalos</title>
+    <link href="http://localhost:5173/src/styles/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow">
+        <h1 class="text-3xl font-bold mb-6">Debug Role Switching</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Controls -->
+            <div>
+                <h2 class="text-xl font-bold mb-4">Test Controls</h2>
+                <div class="space-y-3">
+                    <button id="loginCustomer" class="w-full bg-blue-500 text-white px-4 py-3 rounded">
+                        1. Login as Customer (Demo)
+                    </button>
+                    <button id="addProfessionalRole" class="w-full bg-green-500 text-white px-4 py-3 rounded">
+                        2. Add Professional Role
+                    </button>
+                    <button id="switchToProfessional" class="w-full bg-purple-500 text-white px-4 py-3 rounded">
+                        3. Switch to Professional
+                    </button>
+                    <button id="switchToCustomer" class="w-full bg-orange-500 text-white px-4 py-3 rounded">
+                        4. Switch to Customer
+                    </button>
+                    <button id="testHeaderSwitch" class="w-full bg-teal-500 text-white px-4 py-3 rounded">
+                        Test Header Role Switch
+                    </button>
+                    <button id="testNavigation" class="w-full bg-indigo-500 text-white px-4 py-3 rounded">
+                        Test Navigation to Dashboard
+                    </button>
+                    <button id="testLogout" class="w-full bg-red-600 text-white px-4 py-3 rounded">
+                        Test Logout Functionality
+                    </button>
+                    <button id="clearStorage" class="w-full bg-red-500 text-white px-4 py-3 rounded">
+                        Clear Storage
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Status -->
+            <div>
+                <h2 class="text-xl font-bold mb-4">Current Status</h2>
+                <div id="status" class="bg-gray-100 p-4 rounded text-sm">
+                    Loading...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Console Log -->
+        <div class="mt-8">
+            <h2 class="text-xl font-bold mb-4">Console Log</h2>
+            <div id="console" class="bg-black text-green-400 p-4 rounded text-sm h-64 overflow-y-scroll font-mono">
+            </div>
+        </div>
+        
+        <!-- localStorage Content -->
+        <div class="mt-8">
+            <h2 class="text-xl font-bold mb-4">localStorage Content</h2>
+            <div id="localStorage" class="bg-gray-100 p-4 rounded text-sm">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { authService } from './src/services/auth.js';
+        
+        // Console logging
+        let originalLog = console.log;
+        let originalError = console.error;
+        let originalWarn = console.warn;
+        
+        function addToConsole(message, type = 'log') {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : type === 'warn' ? 'text-yellow-400' : 'text-green-400';
+            consoleDiv.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            originalLog(...args);
+            addToConsole(args.join(' '));
+        };
+        
+        console.error = (...args) => {
+            originalError(...args);
+            addToConsole(args.join(' '), 'error');
+        };
+        
+        console.warn = (...args) => {
+            originalWarn(...args);
+            addToConsole(args.join(' '), 'warn');
+        };
+        
+        function updateStatus() {
+            const user = authService.getCurrentUser();
+            const profile = authService.getCurrentUserProfile();
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `
+                <div><strong>User Email:</strong> ${user?.email || 'None'}</div>
+                <div><strong>User UID:</strong> ${user?.uid || 'None'}</div>
+                <div><strong>Available Roles:</strong> ${profile?.availableRoles?.join(', ') || 'None'}</div>
+                <div><strong>Active Role:</strong> ${profile?.activeRole || 'None'}</div>
+                <div><strong>Is Authenticated:</strong> ${authService.isAuthenticated()}</div>
+                <div><strong>Is Professional:</strong> ${authService.isProfessional()}</div>
+                <div><strong>Is Customer:</strong> ${authService.isCustomer()}</div>
+                <div><strong>Auth Provider:</strong> ${profile?.authProvider || 'None'}</div>
+            `;
+            
+            // Update localStorage content
+            const localStorageDiv = document.getElementById('localStorage');
+            const demoUser = localStorage.getItem('demoUser');
+            const demoProfile = localStorage.getItem('demoProfile');
+            
+            localStorageDiv.innerHTML = `
+                <div class="mb-4">
+                    <strong>demoUser:</strong>
+                    <pre class="mt-1 text-xs">${demoUser ? JSON.stringify(JSON.parse(demoUser), null, 2) : 'Not set'}</pre>
+                </div>
+                <div>
+                    <strong>demoProfile:</strong>
+                    <pre class="mt-1 text-xs">${demoProfile ? JSON.stringify(JSON.parse(demoProfile), null, 2) : 'Not set'}</pre>
+                </div>
+            `;
+        }
+        
+        // Subscribe to auth changes
+        authService.onAuthStateChange((user, profile) => {
+            console.log('🔔 Auth state changed:', { 
+                email: user?.email, 
+                activeRole: profile?.activeRole, 
+                availableRoles: profile?.availableRoles 
+            });
+            updateStatus();
+        });
+        
+        // Initial status
+        updateStatus();
+        
+        // Event handlers
+        document.getElementById('loginCustomer').addEventListener('click', async () => {
+            console.log('🔐 Testing customer login...');
+            const result = await authService.loginWithGoogle('customer');
+            console.log('🔐 Login result:', result);
+        });
+        
+        document.getElementById('addProfessionalRole').addEventListener('click', async () => {
+            console.log('➕ Adding professional role...');
+            const result = await authService.addRole('professional');
+            console.log('➕ Add role result:', result);
+        });
+        
+        document.getElementById('switchToProfessional').addEventListener('click', async () => {
+            console.log('🔄 Switching to professional...');
+            const result = await authService.switchRole('professional');
+            console.log('🔄 Switch result:', result);
+            if (result.success) {
+                console.log('✅ Role switched successfully, current role is now:', authService.getUserRole());
+            }
+        });
+        
+        document.getElementById('switchToCustomer').addEventListener('click', async () => {
+            console.log('🔄 Switching to customer...');
+            const result = await authService.switchRole('customer');
+            console.log('🔄 Switch result:', result);
+            if (result.success) {
+                console.log('✅ Role switched successfully, current role is now:', authService.getUserRole());
+            }
+        });
+        
+        document.getElementById('testLogout').addEventListener('click', () => {
+            console.log('🚪 Testing logout functionality...');
+            
+            // Test if handleLogout function exists globally
+            if (typeof window.handleLogout === 'function') {
+                console.log('✅ window.handleLogout function found, calling it...');
+                window.handleLogout();
+            } else {
+                console.log('❌ window.handleLogout function not found, simulating logout...');
+                
+                // Simulate the logout functionality
+                const handleLogout = async () => {
+                    console.log('🚪 Logout button clicked (simulated)');
+                    const confirmed = confirm('¿Estás seguro que deseas cerrar sesión?');
+                    if (!confirmed) return;
+
+                    try {
+                        console.log('🚪 Processing logout...');
+                        
+                        // Check if we have a real Firebase user or demo user
+                        const hasRealUser = authService && authService.getCurrentUser();
+                        const hasDemoUser = localStorage.getItem('demoUser') || localStorage.getItem('demoProfile');
+                        
+                        console.log('🚪 Logout detection:', {
+                            hasRealUser: !!hasRealUser,
+                            hasDemoUser: !!hasDemoUser
+                        });
+                        
+                        if (hasRealUser && authService && authService.logout) {
+                            // Use authService for real Firebase users
+                            console.log('🚪 Using authService.logout for real user');
+                            const result = await authService.logout();
+                            
+                            if (result.success) {
+                                console.log('🚪 User logged out via authService successfully');
+                                updateStatus();
+                                setTimeout(() => {
+                                    alert('Logout successful! Redirecting to home...');
+                                }, 100);
+                            } else {
+                                console.error('🚪 AuthService logout failed:', result.error);
+                                alert('Error al cerrar sesión: ' + result.error);
+                            }
+                            
+                        } else if (hasDemoUser) {
+                            // Demo mode logout - clear localStorage
+                            console.log('🚪 Demo mode logout - clearing localStorage');
+                            localStorage.removeItem('demoUser');
+                            localStorage.removeItem('demoProfile');
+                            localStorage.removeItem('demoBookings');
+                            localStorage.removeItem('demoAvailability');
+                            
+                            console.log('🚪 localStorage cleared, updating status');
+                            updateStatus();
+                            alert('Demo logout successful!');
+                            
+                        } else {
+                            console.warn('🚪 No authentication method found');
+                            alert('No active session found');
+                        }
+                        
+                    } catch (error) {
+                        console.error('🚪 Error during logout:', error);
+                        alert('Error during logout: ' + error.message);
+                    }
+                };
+                
+                handleLogout();
+            }
+        });
+        
+        document.getElementById('clearStorage').addEventListener('click', () => {
+            console.log('🗑️ Clearing localStorage...');
+            localStorage.removeItem('demoUser');
+            localStorage.removeItem('demoProfile');
+            localStorage.removeItem('demoBookings');
+            localStorage.removeItem('demoAvailability');
+            updateStatus();
+        });
+        
+        document.getElementById('testHeaderSwitch').addEventListener('click', () => {
+            console.log('🧪 Testing header role switch function...');
+            const currentRole = authService.getUserRole();
+            const targetRole = currentRole === 'professional' ? 'customer' : 'professional';
+            
+            console.log(`🧪 Current role: ${currentRole}, Target role: ${targetRole}`);
+            
+            // Test if switchToRole function exists globally
+            if (typeof window.switchToRole === 'function') {
+                console.log('✅ window.switchToRole function found, calling it...');
+                window.switchToRole(targetRole);
+            } else {
+                console.log('❌ window.switchToRole function not found, simulating header functionality...');
+                
+                // Simulate the header switchToRole function
+                const switchToRole = async (newRole) => {
+                    console.log('🔄 Switching to role:', newRole);
+                    
+                    // Check if we have a real Firebase user or demo user
+                    const hasRealUser = authService && authService.getCurrentUser();
+                    const hasDemoUser = localStorage.getItem('demoUser') || localStorage.getItem('demoProfile');
+                    
+                    try {
+                        if (hasRealUser && authService.switchRole) {
+                            // Use authService for real Firebase users
+                            console.log('🔄 Using authService.switchRole for real user');
+                            
+                            const result = await authService.switchRole(newRole);
+                            
+                            if (result.success) {
+                                console.log('🔄 Role switched successfully to:', newRole);
+                                
+                                // Navigate to appropriate page with a slight delay to ensure state is updated
+                                setTimeout(() => {
+                                    if (newRole === 'professional') {
+                                        console.log('🔄 Navigating to professional dashboard');
+                                        window.location.href = '/pro/dashboard';
+                                    } else {
+                                        console.log('🔄 Navigating to marketplace');
+                                        window.location.href = '/marketplace';
+                                    }
+                                }, 300);
+                                
+                            } else {
+                                console.error('🔄 Role switch failed:', result.error);
+                                alert('Error al cambiar rol: ' + result.error);
+                            }
+                            
+                        } else if (hasDemoUser) {
+                            // Demo mode fallback
+                            console.log('🔄 Using demo mode role switch');
+                            
+                            try {
+                                const demoProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+                                
+                                // Check if role is available
+                                if (!demoProfile.availableRoles || !demoProfile.availableRoles.includes(newRole)) {
+                                    console.error('🔄 Demo user does not have access to role:', newRole);
+                                    alert(`No tienes acceso al rol: ${newRole}`);
+                                    return;
+                                }
+                                
+                                demoProfile.activeRole = newRole;
+                                demoProfile.updatedAt = new Date().toISOString();
+                                localStorage.setItem('demoProfile', JSON.stringify(demoProfile));
+                                
+                                console.log('🔄 Demo role switched successfully to:', newRole);
+                                
+                                // Navigate to appropriate page
+                                setTimeout(() => {
+                                    if (newRole === 'professional') {
+                                        console.log('🔄 Navigating to professional dashboard');
+                                        window.location.href = '/pro/dashboard';
+                                    } else {
+                                        console.log('🔄 Navigating to marketplace');
+                                        window.location.href = '/marketplace';
+                                    }
+                                }, 300);
+                                
+                            } catch (error) {
+                                console.error('🔄 Error parsing demo profile:', error);
+                                alert('Error al cambiar rol');
+                            }
+                            
+                        } else {
+                            console.error('🔄 No authentication method available for role switch');
+                            alert('Usuario no autenticado');
+                        }
+                    } catch (error) {
+                        console.error('🔄 Unexpected error during role switch:', error);
+                        alert('Error inesperado al cambiar rol');
+                    }
+                };
+                
+                switchToRole(targetRole);
+            }
+        });
+        
+        document.getElementById('testNavigation').addEventListener('click', () => {
+            console.log('🚀 Testing navigation to dashboard...');
+            const currentRole = authService.getUserRole();
+            if (currentRole === 'professional') {
+                console.log('✅ Current role is professional, navigating to dashboard...');
+                window.location.href = '/pro/dashboard';
+            } else {
+                console.log('❌ Current role is not professional:', currentRole);
+                alert('Current role is not professional: ' + currentRole);
+            }
+        });
+        
+        console.log('🚀 Debug page loaded');
+    </script>
+</body>
+</html>
