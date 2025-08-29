@@ -500,31 +500,114 @@ async function handleLogout() {
   const confirmed = confirm('¿Estás seguro que deseas cerrar sesión?');
   if (!confirmed) return;
 
+  // Close dropdown immediately
+  const dropdown = document.getElementById('user-dropdown');
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    dropdown.classList.add('hidden');
+  }
+
   try {
     console.log('🚪 Processing logout...');
     
-    // For demo mode, clear localStorage
-    if (import.meta.env.DEV) {
+    // Check if we have a real Firebase user or demo user
+    const hasRealUser = authService && authService.getCurrentUser();
+    const hasDemoUser = localStorage.getItem('demoUser') || localStorage.getItem('demoProfile');
+    
+    console.log('🚪 Logout detection:', {
+      hasRealUser: !!hasRealUser,
+      hasDemoUser: !!hasDemoUser,
+      isDev: import.meta.env.DEV
+    });
+    
+    if (hasRealUser && authService && authService.logout) {
+      // Use authService for real Firebase users
+      console.log('🚪 Using authService.logout for real user');
+      const result = await authService.logout();
+      
+      if (result.success) {
+        console.log('🚪 User logged out via authService successfully');
+        // Force header update
+        setTimeout(() => {
+          updateHeaderAuthState();
+        }, 100);
+        // Redirect with slight delay
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 300);
+      } else {
+        console.error('🚪 AuthService logout failed:', result.error);
+        alert('Error al cerrar sesión: ' + result.error);
+      }
+      
+    } else if (hasDemoUser) {
+      // Demo mode logout - clear localStorage
       console.log('🚪 Demo mode logout - clearing localStorage');
       localStorage.removeItem('demoUser');
       localStorage.removeItem('demoProfile');
+      
+      // Clear any other demo-related data
+      localStorage.removeItem('demoBookings');
+      localStorage.removeItem('demoAvailability');
+      
       console.log('🚪 localStorage cleared, updating header');
-      updateHeaderAuthState();
+      
+      // Force header update
+      setTimeout(() => {
+        updateHeaderAuthState();
+      }, 100);
+      
       console.log('🚪 Redirecting to home');
-      window.location.href = '/';
-      return;
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 300);
+      
+    } else {
+      console.warn('🚪 No authentication method found, clearing everything just in case');
+      // Fallback - clear everything
+      localStorage.removeItem('demoUser');
+      localStorage.removeItem('demoProfile');
+      localStorage.removeItem('demoBookings');
+      localStorage.removeItem('demoAvailability');
+      
+      // Try authService logout anyway
+      if (authService && authService.logout) {
+        try {
+          await authService.logout();
+        } catch (error) {
+          console.warn('🚪 AuthService logout failed in fallback:', error);
+        }
+      }
+      
+      // Force update and redirect
+      setTimeout(() => {
+        updateHeaderAuthState();
+      }, 100);
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 300);
     }
     
-    // Use authService for real logout
-    if (typeof authService !== 'undefined' && authService.logout) {
-      await authService.logout();
-      console.log('🚪 User logged out via authService');
-      updateHeaderAuthState();
-      window.location.href = '/';
-    }
   } catch (error) {
     console.error('🚪 Error during logout:', error);
-    alert('Error al cerrar sesión. Por favor intenta de nuevo.');
+    
+    // Emergency logout - clear everything
+    try {
+      localStorage.removeItem('demoUser');
+      localStorage.removeItem('demoProfile');
+      localStorage.removeItem('demoBookings');
+      localStorage.removeItem('demoAvailability');
+      
+      if (authService && authService.logout) {
+        await authService.logout();
+      }
+    } catch (cleanupError) {
+      console.error('🚪 Error during emergency cleanup:', cleanupError);
+    }
+    
+    // Force redirect regardless
+    alert('Sesión cerrada. Redirigiendo...');
+    window.location.href = '/';
   }
 }
 
@@ -642,5 +725,6 @@ async function switchToRole(newRole) {
 // Expose functions globally
 window.updateHeaderAuthState = updateHeaderAuthState;
 window.initializeHeader = initializeHeader;
+window.handleLogout = handleLogout;
 
 export default { renderHeader, initializeHeader, applyAuthVisibility };
