@@ -375,6 +375,68 @@ class ServicesService {
   }
 
   /**
+   * Get featured services for homepage
+   * @param {number} limit - Number of services to return
+   * @returns {Promise<Array>} Featured services
+   */
+  async getFeaturedServices(limitCount = 6) {
+    try {
+      console.log(`🔍 Searching for ${limitCount} featured services...`);
+      
+      // First try to get services marked as featured or popular
+      let services = [];
+      
+      try {
+        // Simplified query to avoid index requirements
+        const featuredQuery = query(
+          collection(db, 'services'),
+          where('status', '==', 'active'),
+          limit(limitCount)
+        );
+
+        const snapshot = await getDocs(featuredQuery);
+        services = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        console.log(`✅ Found ${services.length} active services`);
+      } catch (queryError) {
+        console.warn('Featured query failed, trying simpler query:', queryError);
+        
+        // Fallback: simple query without where clause
+        const simpleQuery = query(
+          collection(db, 'services'),
+          where('status', '==', 'active'),
+          limit(limitCount)
+        );
+
+        const snapshot = await getDocs(simpleQuery);
+        services = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+      
+      // If no active services found, get any services
+      if (services.length === 0) {
+        console.log('No active services found, getting any services...');
+        const anyQuery = query(collection(db, 'services'), limit(limitCount));
+        const snapshot = await getDocs(anyQuery);
+        services = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+
+      return services;
+    } catch (error) {
+      console.error('Error getting featured services:', error);
+      throw new Error(`Failed to get featured services: ${error.message}`);
+    }
+  }
+
+  /**
    * Update service statistics
    * @param {string} serviceId - Service ID
    * @param {Object} statsUpdate - Statistics to update

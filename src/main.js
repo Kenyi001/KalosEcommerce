@@ -37,12 +37,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     console.log('✅ Kalos E-commerce initialized successfully');
     
-    // Development debug helpers
+    console.log('✅ Kalos E-commerce application ready');
+
+    // Development helper for Firebase data population
     if (import.meta.env.DEV) {
-      console.log('🛠️  Debug helpers available:');
-      console.log('   - debugSearch(): Check demo professionals data');
-      console.log('   - forceHeaderUpdate(): Force header authentication update');
-      console.log('   - initializeHeader(): Reinitialize header');
+      console.log('🛠️  Development mode detected');
+      console.log('   - Use window.populateFirebaseData() to add test data to Firebase');
+      
+      // Load Firebase data population utility
+      try {
+        import('./utils/populateFirebaseData.js');
+      } catch (error) {
+        console.warn('⚠️ Could not load Firebase data population utility:', error);
+      }
     }
   } catch (error) {
     console.error('❌ Failed to initialize Kalos E-commerce:', error);

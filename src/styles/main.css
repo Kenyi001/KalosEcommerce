@@ -2,7 +2,7 @@
 @import './design-system.css';
 
 /* Component Styles */
-@import '../components/atoms/Button/Button.css';
+/* @import '../components/atoms/Button/Button.css'; */ /* Disabled: Using Tailwind-only Button component */
 @import '../components/molecules/FormField/FormField.css';
 
 @tailwind base;

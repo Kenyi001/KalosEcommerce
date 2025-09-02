@@ -1,0 +1,10 @@
+[33m853ed5d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/phase3-continue-0008-20250828[m[33m)[m feat(landing): complete Phase 4 landing page improvements with transparency
+[33maa03351[m fix: improve header logout functionality
+[33m908da49[m fix: improve header role switching functionality
+[33m2ab05b0[m chore: preserve old header implementation for reference
+[33m363f414[m fix(integration): update account and booking pages for new header API
+[33m0de2d82[m feat(bookings): implement transactional availability system
+[33m4d71a92[m docs(firestore): add composite index requirements for professional queries
+[33m0b91d63[m fix(ux): remove automatic marketplace redirect on landing page
+[33m99b8aca[m fix(header): implement robust authentication state management
+[33m53f5deb[m feat(phase4): implement atomic design system foundation

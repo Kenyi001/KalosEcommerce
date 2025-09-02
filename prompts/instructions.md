@@ -1215,3 +1215,4 @@ Cada ticket debe:
 - puede tener más de una tarea para completar los criterios de aceptación
 - referenciar las especificaciones correctas para el alcance del ticket actual
 - puede referenciar otros tickets según sea necesario
+

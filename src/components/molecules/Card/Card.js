@@ -98,49 +98,48 @@ export class ServiceCard extends BaseComponent {
     const { service, professional, showProfessional, compact, className } = this.props;
     
     const cardClasses = [
-      'service-card',
-      compact ? 'service-card-compact' : '',
+      'bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group border border-gray-100',
+      compact ? 'max-w-sm' : 'max-w-md',
       className
     ].filter(Boolean).join(' ');
 
     return `
-      <div class="${cardClasses}" data-component="service-card" data-service-id="${service.id}">
+      <div class="${cardClasses}" data-component="service-card" data-service-id="${service.id}" data-category="${service.category}">
         <!-- Service Image -->
-        <div class="service-card-image">
+        <div class="relative h-48 overflow-hidden">
           <img
             src="${service.images[0] || '/images/placeholder-service.jpg'}"
             alt="${service.name}"
-            class="service-image"
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
           
           <!-- Category Badge -->
-          <div class="service-category-badge">
+          <div class="absolute top-3 left-3 bg-brand text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
             ${this.getCategoryLabel(service.category)}
           </div>
           
           <!-- Favorite Button -->
-          <button class="service-favorite-btn" aria-label="Agregar a favoritos">
-            ${renderIcon('heart', { size: '20', className: 'favorite-icon' })}
+          <button class="absolute top-3 right-3 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg text-gray-600 hover:text-brand" aria-label="Agregar a favoritos">
+            ${renderIcon('heart', { size: '20' })}
           </button>
         </div>
         
         <!-- Service Content -->
-        <div class="service-card-content">
+        <div class="p-6 space-y-4">
           <!-- Service Info -->
-          <div class="service-info">
-            <h3 class="service-title">${service.name}</h3>
-            ${!compact ? `<p class="service-description">${service.description}</p>` : ''}
+          <div class="space-y-3">
+            <h3 class="text-xl font-display font-bold text-gray-900 line-clamp-2 leading-tight">${service.name}</h3>
+            ${!compact ? `<p class="text-gray-600 text-sm leading-relaxed line-clamp-2">${service.description}</p>` : ''}
             
             <!-- Service Details -->
-            <div class="service-details">
-              <div class="service-price">
-                <span class="price-currency">Bs.</span>
-                <span class="price-amount">${service.price}</span>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1">
+                <span class="text-2xl font-display font-bold text-brand">Bs. ${service.price}</span>
               </div>
-              <div class="service-duration">
-                ${renderIcon('clock', { size: '16', className: 'duration-icon' })}
-                <span class="duration-text">${service.duration} min</span>
+              <div class="flex items-center gap-1 text-gray-500 text-sm">
+                ${renderIcon('clock', { size: '16' })}
+                <span>${service.duration} min</span>
               </div>
             </div>
           </div>
@@ -148,11 +147,11 @@ export class ServiceCard extends BaseComponent {
           ${showProfessional ? this.renderProfessionalInfo() : ''}
           
           <!-- Actions -->
-          <div class="service-actions">
-            <button class="btn btn-ghost btn-sm view-details-btn">
+          <div class="flex gap-3 pt-2 border-t border-gray-100">
+            <button class="flex-1 text-gray-600 hover:text-brand transition-colors duration-200 font-medium text-sm py-2 view-details-btn">
               Ver detalles
             </button>
-            <button class="btn btn-primary btn-sm book-now-btn">
+            <button class="flex-1 bg-brand hover:bg-brand-hover text-white py-2 px-4 rounded-lg font-semibold text-sm transition-colors duration-200 flex items-center justify-center gap-2 book-now-btn">
               ${renderIcon('calendar', { size: '16' })}
               Reservar
             </button>
@@ -166,29 +165,29 @@ export class ServiceCard extends BaseComponent {
     const { professional } = this.props;
     
     return `
-      <div class="service-professional">
-        <div class="professional-avatar">
+      <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+        <div class="relative flex-shrink-0">
           <img 
             src="${professional.avatar || '/images/placeholder-avatar.jpg'}" 
             alt="${professional.name}"
-            class="avatar-image"
+            class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
           />
           ${professional.verified ? `
-            <div class="verified-badge" title="Profesional verificado">
-              ${renderIcon('check-circle', { size: '16', className: 'verified-icon' })}
+            <div class="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center" title="Profesional verificado">
+              ${renderIcon('check', { size: '12' })}
             </div>
           ` : ''}
         </div>
         
-        <div class="professional-info">
-          <div class="professional-name">${professional.name}</div>
-          <div class="professional-rating">
-            <div class="rating-stars">
+        <div class="flex-1 min-w-0">
+          <h4 class="font-medium text-gray-900 text-sm truncate">${professional.name}</h4>
+          <div class="flex items-center gap-2 text-xs text-gray-600">
+            <div class="flex items-center">
               ${this.renderStars(professional.rating)}
             </div>
-            <span class="rating-text">
-              ${professional.rating.toFixed(1)} (${professional.reviewCount})
-            </span>
+            <span class="font-medium">${professional.rating.toFixed(1)}</span>
+            <span class="text-gray-400">•</span>
+            <span>${professional.reviewCount} reseñas</span>
           </div>
         </div>
       </div>
@@ -204,17 +203,17 @@ export class ServiceCard extends BaseComponent {
     
     // Full stars
     for (let i = 0; i < fullStars; i++) {
-      starsHtml += renderIcon('star', { size: '12', className: 'star-icon star-filled' });
+      starsHtml += `<span class="text-gold">${renderIcon('star', { size: '12' })}</span>`;
     }
     
     // Half star
     if (hasHalfStar) {
-      starsHtml += renderIcon('star', { size: '12', className: 'star-icon star-half' });
+      starsHtml += `<span class="text-gold">${renderIcon('star', { size: '12' })}</span>`;
     }
     
     // Empty stars
     for (let i = 0; i < emptyStars; i++) {
-      starsHtml += renderIcon('star', { size: '12', className: 'star-icon star-empty' });
+      starsHtml += `<span class="text-gray-300">${renderIcon('star', { size: '12' })}</span>`;
     }
     
     return starsHtml;
@@ -527,47 +526,47 @@ export class ReviewCard extends BaseComponent {
     const { review, showService, compact, className } = this.props;
     
     const cardClasses = [
-      'review-card',
-      compact ? 'review-card-compact' : '',
+      'bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-200',
+      compact ? 'p-4' : '',
       className
     ].filter(Boolean).join(' ');
 
     return `
       <div class="${cardClasses}" data-component="review-card">
         <!-- Review Header -->
-        <div class="review-header">
-          <div class="customer-info">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="flex items-center gap-3">
             <img 
               src="${review.customerAvatar || '/images/placeholder-avatar.jpg'}" 
               alt="${review.customerName}"
-              class="customer-avatar"
+              class="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
             />
-            <div class="customer-details">
-              <div class="customer-name">
-                ${review.customerName}
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-semibold text-gray-900 text-sm">${review.customerName}</h4>
                 ${review.verified ? `
-                  <span class="verified-badge">
-                    ${renderIcon('check-circle', { size: '14', className: 'verified-icon' })}
+                  <span class="text-success">
+                    ${renderIcon('check-circle', { size: '14' })}
                   </span>
                 ` : ''}
               </div>
-              <div class="review-date">${this.formatDate(review.date)}</div>
+              <div class="text-gray-500 text-xs">${this.formatDate(review.date)}</div>
             </div>
           </div>
           
-          <div class="review-rating">
+          <div class="flex items-center ml-auto">
             ${this.renderStars(review.rating)}
           </div>
         </div>
         
         <!-- Review Content -->
-        <div class="review-content">
-          <p class="review-comment">${review.comment}</p>
+        <div class="space-y-3">
+          <p class="text-gray-700 leading-relaxed text-sm">${review.comment}</p>
           
           ${showService && review.service ? `
-            <div class="review-service">
-              <span class="service-label">Servicio:</span>
-              <span class="service-name">${review.service}</span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-xs">
+              <span class="text-gray-600">Servicio:</span>
+              <span class="font-medium text-gray-900">${review.service}</span>
             </div>
           ` : ''}
         </div>
@@ -579,15 +578,17 @@ export class ReviewCard extends BaseComponent {
     const fullStars = Math.floor(rating);
     const emptyStars = 5 - fullStars;
     
-    let starsHtml = '';
+    let starsHtml = '<div class="flex items-center gap-1">';
     
     for (let i = 0; i < fullStars; i++) {
-      starsHtml += renderIcon('star', { size: '16', className: 'star-icon star-filled' });
+      starsHtml += `<span class="text-gold">${renderIcon('star', { size: '16' })}</span>`;
     }
     
     for (let i = 0; i < emptyStars; i++) {
-      starsHtml += renderIcon('star', { size: '16', className: 'star-icon star-empty' });
+      starsHtml += `<span class="text-gray-300">${renderIcon('star', { size: '16' })}</span>`;
     }
+    
+    starsHtml += '</div>';
     
     return starsHtml;
   }

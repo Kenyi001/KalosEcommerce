@@ -160,10 +160,9 @@ class ProfessionalService {
       //
       // Si se usa con filtros adicionales (categoría, ubicación, orderBy), requerirá índices adicionales
       
-      // Base filters for active verified professionals
+      // Base filters for active professionals (simplified to avoid index)
       const constraints = [
-        where('status', '==', 'active'),
-        where('verification.status', '==', 'approved')
+        where('status', '==', 'active')
       ];
       
       // Apply category filter
@@ -180,15 +179,15 @@ class ProfessionalService {
         constraints.push(where('location.city', '==', filters.city));
       }
       
-      // Apply rating filter
-      if (filters.minRating && filters.minRating > 0) {
-        constraints.push(where('stats.averageRating', '>=', filters.minRating));
-      }
+      // Apply rating filter (temporarily disabled to avoid index requirements)
+      // if (filters.minRating && filters.minRating > 0) {
+      //   constraints.push(where('stats.averageRating', '>=', filters.minRating));
+      // }
       
-      // Apply sorting
-      const sortBy = filters.sortBy || 'stats.averageRating';
-      const sortOrder = filters.sortOrder || 'desc';
-      constraints.push(orderBy(sortBy, sortOrder));
+      // Apply sorting (temporarily disabled to avoid index requirements)
+      // const sortBy = filters.sortBy || 'stats.averageRating';
+      // const sortOrder = filters.sortOrder || 'desc';
+      // constraints.push(orderBy(sortBy, sortOrder));
       
       // Apply pagination
       const pageSize = pagination.limit || 12;

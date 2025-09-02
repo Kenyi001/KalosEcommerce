@@ -83,17 +83,35 @@ export class Button extends BaseComponent {
 
     const { loading, disabled, focused, pressed } = this.state;
 
+    // Use only Tailwind CSS classes instead of custom Button.css
     const baseClasses = this.mergeClasses(
-      'btn',
-      `btn-${variant}`,
-      `btn-${size}`,
-      fullWidth ? 'btn-full-width' : '',
-      disabled || loading ? 'btn-disabled' : '',
-      loading ? 'btn-loading' : '',
-      focused ? 'btn-focused' : '',
-      pressed ? 'btn-pressed' : '',
-      icon ? 'btn-with-icon' : '',
-      icon && !children ? 'btn-icon-only' : '',
+      // Base button styles (Tailwind only)
+      'inline-flex items-center justify-center font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+      
+      // Size classes (Tailwind only)
+      size === 'xs' ? 'px-2.5 py-1.5 text-xs min-h-6' :
+      size === 'sm' ? 'px-3 py-2 text-sm min-h-8' :
+      size === 'md' ? 'px-4 py-2.5 text-base min-h-10' :
+      size === 'lg' ? 'px-5 py-3 text-lg min-h-12' :
+      size === 'xl' ? 'px-6 py-3.5 text-xl min-h-14' : 'px-4 py-2.5 text-base min-h-10',
+      
+      // Variant classes (Tailwind only)
+      variant === 'primary' ? 'bg-brand text-white border-brand hover:bg-brand-hover focus:ring-brand' :
+      variant === 'secondary' ? 'bg-navy text-white border-navy hover:bg-navy-hover focus:ring-navy' :
+      variant === 'ghost' ? 'bg-transparent text-navy border-2 border-navy/30 hover:bg-navy/10 hover:border-navy focus:ring-navy' :
+      variant === 'danger' ? 'bg-red-600 text-white border-red-600 hover:bg-red-700 focus:ring-red-500' :
+      variant === 'success' ? 'bg-green-600 text-white border-green-600 hover:bg-green-700 focus:ring-green-500' :
+      'bg-brand text-white border-brand hover:bg-brand-hover focus:ring-brand',
+      
+      // State classes (Tailwind only)
+      fullWidth ? 'w-full' : '',
+      disabled ? 'opacity-60' : '', // FIX: Remove cursor-not-allowed to keep clicks working
+      loading ? 'opacity-60' : '', // FIX: Remove cursor-wait to keep clicks working
+      pressed ? 'transform translate-y-0.5' : '',
+      icon && !children ? 'aspect-square p-2' : '',
+      'cursor-pointer', // FIX: Always keep cursor pointer for clicks
+      
+      // Custom classes passed via props
       className
     );
 
@@ -190,22 +208,67 @@ export class Button extends BaseComponent {
   afterMount() {
     super.afterMount();
     this.selector = '[data-component="button"]';
+    console.log('🔘 Button afterMount called:', {
+      hasElement: !!this.element,
+      componentId: this.componentId,
+      hasOnClick: !!this.props.onClick
+    });
   }
 
   bindEvents() {
-    if (!this.element) return;
+    if (!this.element) {
+      console.warn('🚨 Button bindEvents called but element is null:', this.componentId);
+      return;
+    }
+    
+    // Prevent multiple bindings using component instance tracking
+    if (this._eventsbound) {
+      // Only log in development mode
+      if (import.meta.env.DEV) {
+        console.log('🔗 Button events already bound, skipping:', this.componentId);
+      }
+      return;
+    }
+    
+    // Only log in development mode
+    if (import.meta.env.DEV) {
+      console.log('🔗 Button bindEvents called:', {
+        elementExists: !!this.element,
+        componentId: this.componentId,
+        hasOnClick: !!this.props.onClick
+      });
+    }
 
-    // Click handler
+    // FIX: Use addEventListener instead of onclick to avoid overwriting manual handlers
+    if (this.props.onClick) {
     this.addEventListener(this.element, 'click', (e) => {
+        console.log('🔘 Button click event triggered:', {
+          disabled: this.state.disabled,
+          loading: this.state.loading,
+          hasOnClick: !!this.props.onClick
+        });
+        
       if (this.state.disabled || this.state.loading) {
+          console.log('🔘 Button click prevented - disabled or loading');
         e.preventDefault();
+          e.stopPropagation();
         return;
       }
 
-      if (this.props.onClick) {
+        console.log('🔘 Executing button onClick handler');
         this.props.onClick(e);
-      }
-    });
+      });
+    } else {
+      console.log('🔘 No onClick handler defined for button');
+    }
+    
+    // Mark component as having events bound
+    this._eventsbound = true;
+    
+    // Only log in development mode
+    if (import.meta.env.DEV) {
+      console.log('✅ Button click event listener added successfully:', this.componentId);
+    }
 
     // Focus handlers
     this.addEventListener(this.element, 'focus', (e) => {
@@ -326,4 +389,320 @@ export function createButton(props = {}) {
 }
 
 // Export as default
+export default Button;
+
+
+  afterMount() {
+
+    super.afterMount();
+
+    this.selector = '[data-component="button"]';
+
+    console.log('🔘 Button afterMount called:', {
+      hasElement: !!this.element,
+      componentId: this.componentId,
+      hasOnClick: !!this.props.onClick
+    });
+  }
+
+
+
+  bindEvents() {
+
+    if (!this.element) {
+      console.warn('🚨 Button bindEvents called but element is null:', this.componentId);
+      return;
+    }
+    
+    // Prevent multiple bindings using component instance tracking
+    if (this._eventsbound) {
+      console.log('🔗 Button events already bound, skipping:', this.componentId);
+      return;
+    }
+    
+    console.log('🔗 Button bindEvents called:', {
+      elementExists: !!this.element,
+      componentId: this.componentId,
+      hasOnClick: !!this.props.onClick
+    });
+
+
+    // Click handler
+
+    this.addEventListener(this.element, 'click', (e) => {
+
+      console.log('🔘 Button click event triggered:', {
+        disabled: this.state.disabled,
+        loading: this.state.loading,
+        hasOnClick: !!this.props.onClick
+      });
+      
+      if (this.state.disabled || this.state.loading) {
+
+        console.log('🔘 Button click prevented - disabled or loading');
+        e.preventDefault();
+
+        e.stopPropagation();
+        return;
+
+      }
+
+
+
+      if (this.props.onClick) {
+
+        console.log('🔘 Executing button onClick handler');
+        this.props.onClick(e);
+
+      } else {
+        console.log('🔘 No onClick handler defined for button');
+      }
+
+    });
+
+    
+    // Mark component as having events bound
+    this._eventsbound = true;
+    
+    console.log('✅ Button click event listener added successfully:', this.componentId);
+
+
+    // Focus handlers
+
+    this.addEventListener(this.element, 'focus', (e) => {
+
+      this.setState({ focused: true });
+
+      if (this.props.onFocus) {
+
+        this.props.onFocus(e);
+
+      }
+
+    });
+
+
+
+    this.addEventListener(this.element, 'blur', (e) => {
+
+      this.setState({ focused: false });
+
+      if (this.props.onBlur) {
+
+        this.props.onBlur(e);
+
+      }
+
+    });
+
+
+
+    // Mouse down/up for pressed state
+
+    this.addEventListener(this.element, 'mousedown', () => {
+
+      if (!this.state.disabled && !this.state.loading) {
+
+        this.setState({ pressed: true });
+
+      }
+
+    });
+
+
+
+    this.addEventListener(this.element, 'mouseup', () => {
+
+      this.setState({ pressed: false });
+
+    });
+
+
+
+    this.addEventListener(this.element, 'mouseleave', () => {
+
+      this.setState({ pressed: false });
+
+    });
+
+
+
+    // Keyboard handlers for pressed state
+
+    this.addEventListener(this.element, 'keydown', (e) => {
+
+      if ((e.key === 'Enter' || e.key === ' ') && !this.state.disabled && !this.state.loading) {
+
+        this.setState({ pressed: true });
+
+      }
+
+    });
+
+
+
+    this.addEventListener(this.element, 'keyup', (e) => {
+
+      if (e.key === 'Enter' || e.key === ' ') {
+
+        this.setState({ pressed: false });
+
+      }
+
+    });
+
+  }
+
+
+
+  // Public API methods
+
+  setLoading(loading) {
+
+    this.setState({ loading: Boolean(loading) });
+
+    return this;
+
+  }
+
+
+
+  setDisabled(disabled) {
+
+    this.setState({ disabled: Boolean(disabled) });
+
+    return this;
+
+  }
+
+
+
+  setText(text) {
+
+    this.props.children = text;
+
+    this.rerender();
+
+    return this;
+
+  }
+
+
+
+  focus() {
+
+    if (this.element) {
+
+      this.element.focus();
+
+    }
+
+    return this;
+
+  }
+
+
+
+  blur() {
+
+    if (this.element) {
+
+      this.element.blur();
+
+    }
+
+    return this;
+
+  }
+
+
+
+  click() {
+
+    if (this.element && !this.state.disabled && !this.state.loading) {
+
+      this.element.click();
+
+    }
+
+    return this;
+
+  }
+
+
+
+  // Static factory methods for common button types
+
+  static primary(props = {}) {
+
+    return new Button({ variant: 'primary', ...props });
+
+  }
+
+
+
+  static secondary(props = {}) {
+
+    return new Button({ variant: 'secondary', ...props });
+
+  }
+
+
+
+  static ghost(props = {}) {
+
+    return new Button({ variant: 'ghost', ...props });
+
+  }
+
+
+
+  static danger(props = {}) {
+
+    return new Button({ variant: 'danger', ...props });
+
+  }
+
+
+
+  static success(props = {}) {
+
+    return new Button({ variant: 'success', ...props });
+
+  }
+
+
+
+  // Helper for creating icon buttons
+
+  static icon(icon, props = {}) {
+
+    return new Button({
+
+      icon,
+
+      ariaLabel: props.ariaLabel || 'Icon button',
+
+      ...props
+
+    });
+
+  }
+
+}
+
+
+
+// Factory function for easier instantiation
+
+export function createButton(props = {}) {
+
+  return new Button(props);
+
+}
+
+
+
+// Export as default
+
 export default Button;

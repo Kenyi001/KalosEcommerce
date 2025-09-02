@@ -514,8 +514,76 @@ export class BookingFlow {
     
     this.bookingData.customerId = user.uid;
     
+    // Load pre-filled data from calendar if available
+    this.loadPreFilledData();
+    
     this.bindEvents();
     await this.loadStepData();
+  }
+
+  loadPreFilledData() {
+    try {
+      const preDataStr = sessionStorage.getItem('bookingPreData');
+      if (preDataStr) {
+        const preData = JSON.parse(preDataStr);
+        console.log('📅 Loading pre-filled booking data from calendar:', preData);
+        
+        // Pre-fill booking data
+        if (preData.professionalId) {
+          this.bookingData.professionalId = preData.professionalId;
+        }
+        
+        if (preData.serviceId) {
+          this.bookingData.serviceId = preData.serviceId;
+        }
+        
+        if (preData.scheduledDate) {
+          this.bookingData.scheduledDate = preData.scheduledDate;
+        }
+        
+        if (preData.scheduledTime) {
+          this.bookingData.scheduledTime = preData.scheduledTime;
+        }
+        
+        // Pre-fill service details
+        if (preData.serviceName) {
+          this.bookingData.service.name = preData.serviceName;
+          this.bookingData.service.price = preData.servicePrice || 0;
+          this.bookingData.service.duration = preData.serviceDuration || 60;
+          this.bookingData.service.totalPrice = preData.servicePrice || 0;
+          this.bookingData.service.totalDuration = preData.serviceDuration || 60;
+        }
+        
+        // Store professional info for display
+        this.preFilledProfessional = {
+          id: preData.professionalId,
+          name: preData.professionalName,
+          avatar: preData.professionalAvatar
+        };
+        
+        // Store service info for display
+        this.preFilledService = {
+          id: preData.serviceId,
+          name: preData.serviceName,
+          price: preData.servicePrice,
+          duration: preData.serviceDuration,
+          category: preData.serviceCategory,
+          description: preData.serviceDescription
+        };
+        
+        // Skip to location step since professional, service, and time are already selected
+        if (preData.fromCalendar) {
+          this.currentStep = 3; // Skip to location selection
+        }
+        
+        console.log('✅ Pre-filled booking data loaded, starting at step:', this.currentStep);
+        
+        // Clear session storage after loading
+        sessionStorage.removeItem('bookingPreData');
+      }
+    } catch (error) {
+      console.warn('⚠️ Error loading pre-filled data:', error);
+    }
   }
 
   bindEvents() {
