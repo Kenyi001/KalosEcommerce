@@ -92,26 +92,31 @@ class ServicesService {
    */
   async getServicesByProfessional(professionalId, activeOnly = true) {
     try {
-      let servicesQuery = query(
+      // Simplified query to avoid composite index requirement
+      const servicesQuery = query(
         collection(db, 'services'),
-        where('professionalId', '==', professionalId),
-        orderBy('createdAt', 'desc')
+        where('professionalId', '==', professionalId)
       );
 
-      if (activeOnly) {
-        servicesQuery = query(
-          collection(db, 'services'),
-          where('professionalId', '==', professionalId),
-          where('status', '==', 'active'),
-          orderBy('createdAt', 'desc')
-        );
-      }
-
       const snapshot = await getDocs(servicesQuery);
-      return snapshot.docs.map(doc => ({
+      let services = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      // Filter and sort locally to avoid index requirement
+      if (activeOnly) {
+        services = services.filter(service => service.status === 'active');
+      }
+
+      // Sort by createdAt locally
+      services.sort((a, b) => {
+        const aDate = a.createdAt?.toDate?.() || new Date(a.createdAt);
+        const bDate = b.createdAt?.toDate?.() || new Date(b.createdAt);
+        return bDate - aDate; // Descending order
+      });
+
+      return services;
     } catch (error) {
       console.error('Error getting services by professional:', error);
       throw new Error(`Failed to get services: ${error.message}`);
@@ -370,6 +375,68 @@ class ServicesService {
   }
 
   /**
+   * Get featured services for homepage
+   * @param {number} limit - Number of services to return
+   * @returns {Promise<Array>} Featured services
+   */
+  async getFeaturedServices(limitCount = 6) {
+    try {
+      console.log(`🔍 Searching for ${limitCount} featured services...`);
+      
+      // First try to get services marked as featured or popular
+      let services = [];
+      
+      try {
+        // Simplified query to avoid index requirements
+        const featuredQuery = query(
+          collection(db, 'services'),
+          where('status', '==', 'active'),
+          limit(limitCount)
+        );
+
+        const snapshot = await getDocs(featuredQuery);
+        services = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        console.log(`✅ Found ${services.length} active services`);
+      } catch (queryError) {
+        console.warn('Featured query failed, trying simpler query:', queryError);
+        
+        // Fallback: simple query without where clause
+        const simpleQuery = query(
+          collection(db, 'services'),
+          where('status', '==', 'active'),
+          limit(limitCount)
+        );
+
+        const snapshot = await getDocs(simpleQuery);
+        services = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+      
+      // If no active services found, get any services
+      if (services.length === 0) {
+        console.log('No active services found, getting any services...');
+        const anyQuery = query(collection(db, 'services'), limit(limitCount));
+        const snapshot = await getDocs(anyQuery);
+        services = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+
+      return services;
+    } catch (error) {
+      console.error('Error getting featured services:', error);
+      throw new Error(`Failed to get featured services: ${error.message}`);
+    }
+  }
+
+  /**
    * Update service statistics
    * @param {string} serviceId - Service ID
    * @param {Object} statsUpdate - Statistics to update
@@ -586,5 +653,9 @@ class ServicesService {
     }
   }
 }
+
+// Export new booking and availability services
+export { BookingService } from './bookings.js';
+export { AvailabilityService } from './availability.js';
 
 export const servicesService = new ServicesService();

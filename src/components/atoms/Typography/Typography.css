@@ -1,0 +1,415 @@
+/**
+ * Typography Component Styles - Kalos Design System
+ */
+
+/* Base typography styles */
+.heading {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+  color: var(--color-navy);
+  margin: 0;
+}
+
+.paragraph {
+  font-family: var(--font-family-sans);
+  color: var(--color-gray-700);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.text-element {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Font sizes */
+.text-display-lg {
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-tight);
+  font-family: var(--font-family-display);
+  font-weight: 700;
+}
+
+.text-display-md {
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-tight);
+  font-family: var(--font-family-display);
+  font-weight: 600;
+}
+
+.text-xl {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
+.text-lg {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
+}
+
+.text-base {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+.text-sm {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.text-xs {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+/* Font weights */
+.font-light {
+  font-weight: 300;
+}
+
+.font-normal {
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-extrabold {
+  font-weight: 800;
+}
+
+/* Font families */
+.font-sans {
+  font-family: var(--font-family-sans);
+}
+
+.font-display {
+  font-family: var(--font-family-display);
+}
+
+.font-mono {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* Text colors */
+.text-brand {
+  color: var(--color-brand);
+}
+
+.text-navy {
+  color: var(--color-navy);
+}
+
+.text-gray-50 {
+  color: var(--color-gray-50);
+}
+
+.text-gray-100 {
+  color: var(--color-gray-100);
+}
+
+.text-gray-200 {
+  color: var(--color-gray-200);
+}
+
+.text-gray-300 {
+  color: var(--color-gray-300);
+}
+
+.text-gray-400 {
+  color: var(--color-gray-400);
+}
+
+.text-gray-500 {
+  color: var(--color-gray-500);
+}
+
+.text-gray-600 {
+  color: var(--color-gray-600);
+}
+
+.text-gray-700 {
+  color: var(--color-gray-700);
+}
+
+.text-gray-800 {
+  color: var(--color-gray-800);
+}
+
+.text-gray-900 {
+  color: var(--color-gray-900);
+}
+
+.text-red-500 {
+  color: #ef4444;
+}
+
+.text-red-600 {
+  color: #dc2626;
+}
+
+.text-green-600 {
+  color: #16a34a;
+}
+
+.text-yellow-600 {
+  color: #ca8a04;
+}
+
+.text-inherit {
+  color: inherit;
+}
+
+/* Text alignment */
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-justify {
+  text-align: justify;
+}
+
+/* Line heights */
+.leading-tight {
+  line-height: var(--line-height-tight);
+}
+
+.leading-normal {
+  line-height: var(--line-height-normal);
+}
+
+.leading-relaxed {
+  line-height: var(--line-height-relaxed);
+}
+
+.leading-loose {
+  line-height: 2;
+}
+
+/* Text decorations */
+.underline {
+  text-decoration: underline;
+}
+
+.line-through {
+  text-decoration: line-through;
+}
+
+.no-underline {
+  text-decoration: none;
+}
+
+/* Text transforms */
+.uppercase {
+  text-transform: uppercase;
+}
+
+.lowercase {
+  text-transform: lowercase;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* Link styles */
+.link {
+  color: var(--color-navy);
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.link:hover {
+  color: var(--color-brand);
+}
+
+.link:focus {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.link-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.link-external-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+/* Link hover underline */
+.link:hover.hover\:underline {
+  text-decoration: underline;
+}
+
+/* Code styles */
+.code {
+  font-family: var(--font-family-mono);
+  font-weight: 500;
+}
+
+.code-inline {
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875em;
+}
+
+.code-block {
+  display: block;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  white-space: pre;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.code-default {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-800);
+}
+
+.code-brand {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand);
+}
+
+.code-success {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.code-warning {
+  background-color: #fef3c7;
+  color: #ca8a04;
+}
+
+.code-error {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  .text-display-lg {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .text-display-md {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .text-xl {
+    font-size: var(--font-size-lg);
+  }
+  
+  .text-lg {
+    font-size: var(--font-size-base);
+  }
+  
+  /* Improve readability on small screens */
+  .paragraph {
+    line-height: var(--line-height-relaxed);
+  }
+}
+
+/* Print styles */
+@media print {
+  .heading,
+  .paragraph,
+  .text-element,
+  .link {
+    color: black !important;
+  }
+  
+  .link::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  .link-external-icon {
+    display: none;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .heading {
+    color: white;
+  }
+  
+  .paragraph {
+    color: var(--color-gray-300);
+  }
+  
+  .text-gray-500 {
+    color: var(--color-gray-400);
+  }
+  
+  .text-gray-600 {
+    color: var(--color-gray-300);
+  }
+  
+  .text-gray-700 {
+    color: var(--color-gray-200);
+  }
+  
+  .text-gray-800 {
+    color: var(--color-gray-100);
+  }
+  
+  .text-gray-900 {
+    color: white;
+  }
+  
+  .link {
+    color: var(--color-gray-200);
+  }
+  
+  .link:hover {
+    color: var(--color-brand);
+  }
+  
+  .code-default {
+    background-color: var(--color-gray-800);
+    color: var(--color-gray-200);
+  }
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand);
+}
+
+::-moz-selection {
+  background-color: var(--color-brand-subtle);
+  color: var(--color-brand);
+}

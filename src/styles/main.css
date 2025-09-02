@@ -1,0 +1,134 @@
+/* Kalos Design System */
+@import './design-system.css';
+
+/* Component Styles */
+/* @import '../components/atoms/Button/Button.css'; */ /* Disabled: Using Tailwind-only Button component */
+@import '../components/molecules/FormField/FormField.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Kalos E-commerce Custom Styles */
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    color: #261B15; /* kalos-black for better contrast */
+    background-color: #FAFAFA; /* kalos-white */
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fraunces', Georgia, serif;
+    line-height: 1.25;
+    color: #261B15; /* Ensure headings are dark */
+  }
+  
+  button:focus,
+  a:focus,
+  input:focus {
+    outline: 2px solid theme('colors.brand.DEFAULT');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand hover:bg-brand-hover text-kalos-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-navy hover:bg-navy-hover text-kalos-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-brand text-brand hover:bg-brand hover:text-kalos-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-base p-6;
+    color: #261B15; /* Ensure text is dark on white cards */
+  }
+  
+  .form-input {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand;
+  }
+  
+  .filter-btn {
+    @apply px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-200 whitespace-nowrap;
+    @apply border-gray-300 text-gray-700 hover:border-brand hover:text-brand;
+  }
+  
+  .filter-btn.active {
+    @apply bg-brand text-white border-brand;
+  }
+}
+
+.spinner {
+  border: 3px solid theme('colors.brand.subtle');
+  border-top: 3px solid theme('colors.brand.DEFAULT');
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Additional utility classes for better contrast */
+@layer utilities {
+  .text-kalos-black {
+    color: #261B15 !important;
+  }
+  
+  .text-navy-dark {
+    color: #303F56 !important;
+  }
+  
+  .bg-white-pure {
+    background-color: #FFFFFF !important;
+  }
+  
+  .text-contrast-high {
+    color: #1F2937 !important; /* Very dark gray for maximum contrast */
+  }
+  
+  .text-display-lg {
+    font-size: 2rem;
+    line-height: 1.25;
+    font-weight: 700;
+    color: #303F56; /* Navy for headers */
+  }
+  
+  .text-display-md {
+    font-size: 1.5rem;
+    line-height: 1.25; 
+    font-weight: 600;
+    color: #303F56; /* Navy for headers */
+  }
+  
+  /* Fix for price range inputs */
+  .price-inputs {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .price-inputs .price-min,
+  .price-inputs .price-max {
+    flex: 1 !important;
+    min-width: 0 !important; /* Prevents flex items from growing beyond container */
+    max-width: calc(50% - 0.25rem) !important; /* Ensure they don't overflow */
+  }
+  
+  .price-inputs span {
+    flex-shrink: 0 !important;
+    color: #9CA3AF !important; /* gray-400 */
+  }
+}

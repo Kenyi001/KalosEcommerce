@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalos Design System - Component Showcase</title>
+  <meta name="description" content="Sistema de componentes completo de Kalos">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Design System Styles -->
+  <link rel="stylesheet" href="./src/styles/main.css">
+  
+  <!-- Component Styles -->
+  <link rel="stylesheet" href="./src/components/atoms/Button/Button.css">
+  <link rel="stylesheet" href="./src/components/atoms/Input/Input.css">
+  <link rel="stylesheet" href="./src/components/atoms/Icon/Icon.css">
+  <link rel="stylesheet" href="./src/components/molecules/FormField/FormField.css">
+  <link rel="stylesheet" href="./src/components/molecules/Card/Card.css">
+  <link rel="stylesheet" href="./src/components/molecules/Modal/Modal.css">
+  <link rel="stylesheet" href="./src/components/molecules/Navigation/Navigation.css">
+  
+  <style>
+    /* Showcase specific styles */
+    .component-section {
+      margin-bottom: 3rem;
+    }
+    
+    .component-example {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .example-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .two-columns {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    .three-columns {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .code-block {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+      overflow-x: auto;
+    }
+    
+    .background-dark { 
+      background-color: #303F56; 
+      color: white;
+    }
+    
+    .background-beige { 
+      background-color: #F3E7DB; 
+    }
+    
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      text-align: center;
+    }
+    
+    .icon-name {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <h1 class="text-xl font-bold text-navy">🎨 Kalos Design System</h1>
+          <div class="flex gap-4">
+            <button id="modal-test" class="btn btn-primary btn-sm">Test Modal</button>
+            <button id="theme-toggle" class="btn btn-ghost btn-sm">🌙 Dark</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      
+      <!-- Overview -->
+      <section class="mb-12">
+        <h2 class="text-3xl font-bold text-navy mb-4">Kalos Component Library</h2>
+        <p class="text-lg text-gray-600 mb-6">
+          Sistema completo de componentes UI para la plataforma Kalos. Todos los componentes siguen los principios de Atomic Design y están optimizados para accesibilidad y responsive design.
+        </p>
+        
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-brand-subtle rounded-lg p-6">
+            <h3 class="font-bold text-brand mb-2">🔧 Atomic Design</h3>
+            <p class="text-sm text-gray-600">Componentes organizados en atoms, molecules y organisms</p>
+          </div>
+          <div class="bg-blue-50 rounded-lg p-6">
+            <h3 class="font-bold text-blue-600 mb-2">♿ Accesible</h3>
+            <p class="text-sm text-gray-600">WCAG 2.1 AA compliance con ARIA y keyboard navigation</p>
+          </div>
+          <div class="bg-green-50 rounded-lg p-6">
+            <h3 class="font-bold text-green-600 mb-2">📱 Responsive</h3>
+            <p class="text-sm text-gray-600">Mobile-first design con breakpoints consistentes</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Atoms: Buttons -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">⚛️ Atoms: Button</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Variants</h3>
+          <div class="flex flex-wrap gap-4 mb-4">
+            <div id="btn-primary"></div>
+            <div id="btn-secondary"></div>
+            <div id="btn-ghost"></div>
+            <div id="btn-danger"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Sizes</h3>
+          <div class="flex flex-wrap items-center gap-4">
+            <div id="btn-sm"></div>
+            <div id="btn-md"></div>
+            <div id="btn-lg"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">States</h3>
+          <div class="flex flex-wrap gap-4">
+            <div id="btn-loading"></div>
+            <div id="btn-disabled"></div>
+            <div id="btn-fullwidth"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Atoms: Input -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">⚛️ Atoms: Input</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Input Types</h3>
+          <div class="example-grid two-columns">
+            <div id="input-text"></div>
+            <div id="input-email"></div>
+            <div id="input-password"></div>
+            <div id="input-number"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Input States</h3>
+          <div class="example-grid two-columns">
+            <div id="input-default"></div>
+            <div id="input-error"></div>
+            <div id="input-success"></div>
+            <div id="input-disabled"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">With Icons</h3>
+          <div class="example-grid two-columns">
+            <div id="input-icon-left"></div>
+            <div id="input-icon-right"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Atoms: Icons -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">⚛️ Atoms: Icon</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Icon Library</h3>
+          <div id="icon-showcase" class="icon-grid"></div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Icon Sizes</h3>
+          <div class="flex items-center gap-4">
+            <div id="icon-sizes"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Icon Colors</h3>
+          <div class="flex items-center gap-4">
+            <div id="icon-colors"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Molecules: Form Fields -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">🧬 Molecules: Form Field</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Form Fields with Validation</h3>
+          <div class="example-grid two-columns">
+            <div id="form-field-basic"></div>
+            <div id="form-field-required"></div>
+            <div id="form-field-error"></div>
+            <div id="form-field-success"></div>
+            <div id="form-field-textarea"></div>
+            <div id="form-field-select"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Molecules: Cards -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">🧬 Molecules: Cards</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Service Cards</h3>
+          <div class="example-grid three-columns">
+            <div id="service-card-1"></div>
+            <div id="service-card-2"></div>
+            <div id="service-card-compact"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Professional Cards</h3>
+          <div class="example-grid two-columns">
+            <div id="professional-card-1"></div>
+            <div id="professional-card-2"></div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Review Cards</h3>
+          <div class="example-grid two-columns">
+            <div id="review-card-1"></div>
+            <div id="review-card-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Molecules: Navigation -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">🧬 Molecules: Navigation</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Breadcrumb</h3>
+          <div id="breadcrumb-example"></div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Pagination</h3>
+          <div id="pagination-example"></div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Steps (Horizontal)</h3>
+          <div id="steps-horizontal"></div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Steps (Vertical)</h3>
+          <div id="steps-vertical" style="max-width: 400px;"></div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Tabs</h3>
+          <div id="tabs-example"></div>
+        </div>
+      </section>
+
+      <!-- Modal Examples -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">🧬 Molecules: Modals</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Modal Types</h3>
+          <div class="flex flex-wrap gap-4">
+            <button id="show-basic-modal" class="btn btn-primary">Basic Modal</button>
+            <button id="show-confirm-modal" class="btn btn-danger">Confirm Modal</button>
+            <button id="show-alert-modal" class="btn btn-warning">Alert Modal</button>
+            <button id="show-form-modal" class="btn btn-secondary">Form Modal</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Color System -->
+      <section class="component-section">
+        <h2 class="text-2xl font-bold text-navy mb-6">🎨 Design Tokens</h2>
+        
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Brand Colors</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center">
+              <div class="w-full h-16 rounded-lg mb-2" style="background-color: #F74F4E;"></div>
+              <div class="text-sm font-medium">Brand</div>
+              <div class="text-xs text-gray-500">#F74F4E</div>
+            </div>
+            <div class="text-center">
+              <div class="w-full h-16 rounded-lg mb-2" style="background-color: #303F56;"></div>
+              <div class="text-sm font-medium">Navy</div>
+              <div class="text-xs text-gray-500">#303F56</div>
+            </div>
+            <div class="text-center">
+              <div class="w-full h-16 rounded-lg mb-2" style="background-color: #FCBE3C;"></div>
+              <div class="text-sm font-medium">Gold</div>
+              <div class="text-xs text-gray-500">#FCBE3C</div>
+            </div>
+            <div class="text-center">
+              <div class="w-full h-16 rounded-lg mb-2" style="background-color: #F3E7DB;"></div>
+              <div class="text-sm font-medium">Beige</div>
+              <div class="text-xs text-gray-500">#F3E7DB</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-example">
+          <h3 class="font-semibold mb-4">Typography</h3>
+          <div class="space-y-4">
+            <div class="text-display-lg">Display Large</div>
+            <div class="text-display-md">Display Medium</div>
+            <div class="text-lg">Text Large</div>
+            <div class="text-base">Text Base (16px)</div>
+            <div class="text-sm">Text Small</div>
+            <div class="text-xs">Text Extra Small</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module">
+    import { Button } from './src/components/atoms/Button/Button.js';
+    import { Input, EmailInput, PasswordInput, NumberInput } from './src/components/atoms/Input/Input.js';
+    import { Icon, renderIcon, availableIcons } from './src/components/atoms/Icon/Icon.js';
+    import { FormField, validators } from './src/components/molecules/FormField/FormField.js';
+    import { ServiceCard, ProfessionalCard, ReviewCard } from './src/components/molecules/Card/Card.js';
+    import { Breadcrumb, Pagination, Steps, Tabs } from './src/components/molecules/Navigation/Navigation.js';
+    import { showModal, showConfirm, showAlert, ModalService } from './src/components/molecules/Modal/Modal.js';
+
+    // Initialize components
+    function initializeShowcase() {
+      // Buttons
+      initializeButtons();
+      
+      // Inputs
+      initializeInputs();
+      
+      // Icons
+      initializeIcons();
+      
+      // Form Fields
+      initializeFormFields();
+      
+      // Cards
+      initializeCards();
+      
+      // Navigation
+      initializeNavigation();
+      
+      // Modal handlers
+      initializeModals();
+    }
+
+    function initializeButtons() {
+      // Button variants
+      const primaryBtn = new Button({
+        children: 'Primary Button',
+        variant: 'primary',
+        onClick: () => console.log('Primary clicked')
+      });
+      primaryBtn.mount(document.getElementById('btn-primary'));
+
+      const secondaryBtn = new Button({
+        children: 'Secondary',
+        variant: 'secondary'
+      });
+      secondaryBtn.mount(document.getElementById('btn-secondary'));
+
+      const ghostBtn = new Button({
+        children: 'Ghost',
+        variant: 'ghost'
+      });
+      ghostBtn.mount(document.getElementById('btn-ghost'));
+
+      const dangerBtn = new Button({
+        children: 'Danger',
+        variant: 'danger'
+      });
+      dangerBtn.mount(document.getElementById('btn-danger'));
+
+      // Button sizes
+      const smallBtn = new Button({ children: 'Small', size: 'sm' });
+      smallBtn.mount(document.getElementById('btn-sm'));
+
+      const mediumBtn = new Button({ children: 'Medium', size: 'md' });
+      mediumBtn.mount(document.getElementById('btn-md'));
+
+      const largeBtn = new Button({ children: 'Large', size: 'lg' });
+      largeBtn.mount(document.getElementById('btn-lg'));
+
+      // Button states
+      const loadingBtn = new Button({ 
+        children: 'Loading...', 
+        loading: true,
+        variant: 'primary'
+      });
+      loadingBtn.mount(document.getElementById('btn-loading'));
+
+      const disabledBtn = new Button({ 
+        children: 'Disabled', 
+        disabled: true 
+      });
+      disabledBtn.mount(document.getElementById('btn-disabled'));
+
+      const fullWidthBtn = new Button({ 
+        children: 'Full Width Button', 
+        fullWidth: true,
+        variant: 'primary'
+      });
+      fullWidthBtn.mount(document.getElementById('btn-fullwidth'));
+    }
+
+    function initializeInputs() {
+      // Input types
+      const textInput = new Input({ 
+        placeholder: 'Enter text...',
+        name: 'text-demo'
+      });
+      textInput.mount(document.getElementById('input-text'));
+
+      const emailInput = new EmailInput({ 
+        placeholder: 'Enter email...',
+        name: 'email-demo'
+      });
+      emailInput.mount(document.getElementById('input-email'));
+
+      const passwordInput = new PasswordInput({ 
+        placeholder: 'Enter password...',
+        name: 'password-demo'
+      });
+      passwordInput.mount(document.getElementById('input-password'));
+
+      const numberInput = new NumberInput({ 
+        placeholder: '0',
+        name: 'number-demo'
+      });
+      numberInput.mount(document.getElementById('input-number'));
+
+      // Input states
+      const defaultInput = new Input({ 
+        placeholder: 'Default state',
+        value: 'Sample text'
+      });
+      defaultInput.mount(document.getElementById('input-default'));
+
+      const errorInput = new Input({ 
+        placeholder: 'Error state',
+        variant: 'error',
+        value: 'Invalid input'
+      });
+      errorInput.mount(document.getElementById('input-error'));
+
+      const successInput = new Input({ 
+        placeholder: 'Success state',
+        variant: 'success',
+        value: 'Valid input'
+      });
+      successInput.mount(document.getElementById('input-success'));
+
+      const disabledInput = new Input({ 
+        placeholder: 'Disabled input',
+        disabled: true,
+        value: 'Cannot edit'
+      });
+      disabledInput.mount(document.getElementById('input-disabled'));
+
+      // With icons
+      const leftIconInput = new Input({ 
+        placeholder: 'Search...',
+        icon: renderIcon('search', { size: '16' })
+      });
+      leftIconInput.mount(document.getElementById('input-icon-left'));
+
+      const rightIconInput = new Input({ 
+        placeholder: 'Enter email...',
+        iconRight: renderIcon('mail', { size: '16' })
+      });
+      rightIconInput.mount(document.getElementById('input-icon-right'));
+    }
+
+    function initializeIcons() {
+      // Icon showcase
+      const iconShowcase = document.getElementById('icon-showcase');
+      const showcaseIcons = [
+        'search', 'user', 'heart', 'star', 'calendar', 'map-pin',
+        'phone', 'mail', 'check', 'close', 'plus', 'edit',
+        'trash', 'settings', 'menu', 'chevron-right', 'chevron-down',
+        'thumbs-up', 'shopping-bag', 'credit-card', 'clock', 'sparkles'
+      ];
+
+      showcaseIcons.forEach(iconName => {
+        const iconItem = document.createElement('div');
+        iconItem.className = 'icon-item';
+        iconItem.innerHTML = `
+          ${renderIcon(iconName, { size: '24', className: 'icon-demo' })}
+          <div class="icon-name">${iconName}</div>
+        `;
+        iconShowcase.appendChild(iconItem);
+      });
+
+      // Icon sizes
+      const iconSizes = document.getElementById('icon-sizes');
+      ['16', '20', '24', '32', '48'].forEach(size => {
+        const iconEl = document.createElement('div');
+        iconEl.innerHTML = renderIcon('star', { size, className: 'icon-size-demo' });
+        iconSizes.appendChild(iconEl);
+      });
+
+      // Icon colors
+      const iconColors = document.getElementById('icon-colors');
+      const colors = ['currentColor', '#F74F4E', '#303F56', '#FCBE3C', '#10B981', '#EF4444'];
+      colors.forEach(color => {
+        const iconEl = document.createElement('div');
+        iconEl.innerHTML = renderIcon('heart', { 
+          size: '24', 
+          color,
+          className: 'icon-color-demo' 
+        });
+        iconColors.appendChild(iconEl);
+      });
+    }
+
+    function initializeFormFields() {
+      // Basic form field
+      const basicField = new FormField({
+        type: 'text',
+        name: 'basic-field',
+        label: 'Basic Field',
+        placeholder: 'Enter text...'
+      });
+      basicField.mount(document.getElementById('form-field-basic'));
+
+      // Required field
+      const requiredField = new FormField({
+        type: 'text',
+        name: 'required-field',
+        label: 'Required Field',
+        placeholder: 'This field is required',
+        required: true
+      });
+      requiredField.mount(document.getElementById('form-field-required'));
+
+      // Error field
+      const errorField = new FormField({
+        type: 'email',
+        name: 'error-field',
+        label: 'Email with Error',
+        placeholder: 'Enter email...',
+        value: 'invalid-email',
+        error: 'Please enter a valid email address'
+      });
+      errorField.mount(document.getElementById('form-field-error'));
+
+      // Success field
+      const successField = new FormField({
+        type: 'text',
+        name: 'success-field',
+        label: 'Success Field',
+        placeholder: 'Enter text...',
+        value: 'Valid input',
+        helpText: '✓ Looks good!'
+      });
+      successField.mount(document.getElementById('form-field-success'));
+
+      // Textarea
+      const textareaField = new FormField({
+        type: 'textarea',
+        name: 'textarea-field',
+        label: 'Description',
+        placeholder: 'Tell us about yourself...',
+        rows: 3
+      });
+      textareaField.mount(document.getElementById('form-field-textarea'));
+
+      // Select
+      const selectField = new FormField({
+        type: 'select',
+        name: 'select-field',
+        label: 'Service Category',
+        options: [
+          { value: 'makeup', label: 'Maquillaje' },
+          { value: 'hair', label: 'Cabello' },
+          { value: 'nails', label: 'Uñas' },
+          { value: 'skincare', label: 'Cuidado facial' }
+        ]
+      });
+      selectField.mount(document.getElementById('form-field-select'));
+    }
+
+    function initializeCards() {
+      // Service Cards
+      const serviceCard1 = new ServiceCard({
+        service: {
+          id: 'service-1',
+          name: 'Maquillaje para Boda',
+          description: 'Maquillaje profesional para el día más especial de tu vida. Incluye prueba previa y retoque.',
+          price: 350,
+          duration: 120,
+          images: ['https://picsum.photos/300/200?random=1'],
+          category: 'makeup'
+        },
+        professional: {
+          id: 'prof-1',
+          name: 'María González',
+          avatar: 'https://picsum.photos/100/100?random=1',
+          rating: 4.8,
+          reviewCount: 127,
+          verified: true
+        },
+        onClick: (service) => console.log('Service clicked:', service.name),
+        onBookNow: (service) => console.log('Book now:', service.name)
+      });
+      serviceCard1.mount(document.getElementById('service-card-1'));
+
+      const serviceCard2 = new ServiceCard({
+        service: {
+          id: 'service-2',
+          name: 'Peinado y Maquillaje',
+          description: 'Combo completo de peinado y maquillaje para eventos especiales.',
+          price: 280,
+          duration: 90,
+          images: ['https://picsum.photos/300/200?random=2'],
+          category: 'hair'
+        },
+        professional: {
+          id: 'prof-2',
+          name: 'Ana Rodríguez',
+          avatar: 'https://picsum.photos/100/100?random=2',
+          rating: 4.9,
+          reviewCount: 89,
+          verified: true
+        }
+      });
+      serviceCard2.mount(document.getElementById('service-card-2'));
+
+      const serviceCardCompact = new ServiceCard({
+        service: {
+          id: 'service-3',
+          name: 'Manicure Express',
+          description: 'Manicure rápida y profesional.',
+          price: 80,
+          duration: 45,
+          images: ['https://picsum.photos/300/200?random=3'],
+          category: 'nails'
+        },
+        professional: {
+          id: 'prof-3',
+          name: 'Carmen Silva',
+          avatar: 'https://picsum.photos/100/100?random=3',
+          rating: 4.7,
+          reviewCount: 234
+        },
+        compact: true,
+        showProfessional: false
+      });
+      serviceCardCompact.mount(document.getElementById('service-card-compact'));
+
+      // Professional Cards
+      const professionalCard1 = new ProfessionalCard({
+        professional: {
+          id: 'prof-1',
+          name: 'María González',
+          avatar: 'https://picsum.photos/150/150?random=4',
+          bio: 'Maquilladora profesional con más de 8 años de experiencia en bodas y eventos especiales.',
+          rating: 4.8,
+          reviewCount: 127,
+          servicesCount: 15,
+          verified: true,
+          location: 'La Paz, Bolivia',
+          categories: ['makeup', 'skincare'],
+          priceRange: { min: 150, max: 450 }
+        },
+        onClick: (prof) => console.log('Professional clicked:', prof.name)
+      });
+      professionalCard1.mount(document.getElementById('professional-card-1'));
+
+      const professionalCard2 = new ProfessionalCard({
+        professional: {
+          id: 'prof-2',
+          name: 'Ana Rodríguez',
+          avatar: 'https://picsum.photos/150/150?random=5',
+          bio: 'Especialista en cabello y peinados para todo tipo de eventos.',
+          rating: 4.9,
+          reviewCount: 89,
+          servicesCount: 12,
+          verified: true,
+          location: 'Santa Cruz, Bolivia',
+          categories: ['hair', 'makeup'],
+          priceRange: { min: 120, max: 380 }
+        },
+        compact: true
+      });
+      professionalCard2.mount(document.getElementById('professional-card-2'));
+
+      // Review Cards
+      const reviewCard1 = new ReviewCard({
+        review: {
+          id: 'review-1',
+          customerName: 'Sofía Mendez',
+          customerAvatar: 'https://picsum.photos/80/80?random=6',
+          rating: 5,
+          comment: '¡Excelente servicio! María hizo un trabajo increíble con mi maquillaje de boda. Super recomendada.',
+          service: 'Maquillaje para Boda',
+          date: '2024-01-15',
+          verified: true
+        }
+      });
+      reviewCard1.mount(document.getElementById('review-card-1'));
+
+      const reviewCard2 = new ReviewCard({
+        review: {
+          id: 'review-2',
+          customerName: 'Lucía Torres',
+          customerAvatar: 'https://picsum.photos/80/80?random=7',
+          rating: 4,
+          comment: 'Muy buen servicio, llegó puntual y el resultado fue genial. Definitivamente la volvería a contratar.',
+          service: 'Peinado para Fiesta',
+          date: '2024-01-10',
+          verified: false
+        },
+        compact: true
+      });
+      reviewCard2.mount(document.getElementById('review-card-2'));
+    }
+
+    function initializeNavigation() {
+      // Breadcrumb
+      const breadcrumb = new Breadcrumb({
+        items: [
+          { label: 'Inicio', href: '/' },
+          { label: 'Marketplace', href: '/marketplace' },
+          { label: 'Maquillaje', href: '/marketplace/makeup' },
+          { label: 'María González', href: '/professionals/maria', isActive: true }
+        ],
+        onNavigate: (item) => console.log('Navigate to:', item.label)
+      });
+      breadcrumb.mount(document.getElementById('breadcrumb-example'));
+
+      // Pagination
+      const pagination = new Pagination({
+        currentPage: 3,
+        totalPages: 10,
+        totalItems: 247,
+        itemsPerPage: 25,
+        onPageChange: (page) => console.log('Go to page:', page)
+      });
+      pagination.mount(document.getElementById('pagination-example'));
+
+      // Steps Horizontal
+      const stepsHorizontal = new Steps({
+        steps: [
+          { title: 'Seleccionar Servicio', status: 'completed' },
+          { title: 'Elegir Profesional', status: 'completed' },
+          { title: 'Fecha y Hora', status: 'current' },
+          { title: 'Confirmar Reserva', status: 'pending' }
+        ],
+        currentStep: 2,
+        onStepClick: (index, step) => console.log('Step clicked:', step.title)
+      });
+      stepsHorizontal.mount(document.getElementById('steps-horizontal'));
+
+      // Steps Vertical
+      const stepsVertical = new Steps({
+        steps: [
+          { 
+            title: 'Crear Cuenta', 
+            description: 'Registra tu información básica',
+            status: 'completed' 
+          },
+          { 
+            title: 'Verificar Email', 
+            description: 'Confirma tu dirección de correo',
+            status: 'completed' 
+          },
+          { 
+            title: 'Completar Perfil', 
+            description: 'Agrega tu foto y descripción',
+            status: 'current' 
+          },
+          { 
+            title: 'Agregar Servicios', 
+            description: 'Define los servicios que ofreces',
+            status: 'pending' 
+          }
+        ],
+        currentStep: 2,
+        orientation: 'vertical'
+      });
+      stepsVertical.mount(document.getElementById('steps-vertical'));
+
+      // Tabs
+      const tabs = new Tabs({
+        tabs: [
+          { 
+            id: 'services', 
+            label: 'Servicios',
+            content: '<p class="p-4">Lista de todos los servicios disponibles.</p>'
+          },
+          { 
+            id: 'reviews', 
+            label: 'Reseñas',
+            content: '<p class="p-4">Reseñas y calificaciones de clientes.</p>'
+          },
+          { 
+            id: 'gallery', 
+            label: 'Galería',
+            content: '<p class="p-4">Fotos de trabajos anteriores.</p>'
+          },
+          { 
+            id: 'contact', 
+            label: 'Contacto',
+            content: '<p class="p-4">Información de contacto y ubicación.</p>'
+          }
+        ],
+        onTabChange: (tabId, tab) => console.log('Tab changed to:', tab.label)
+      });
+      tabs.mount(document.getElementById('tabs-example'));
+    }
+
+    function initializeModals() {
+      // Basic Modal
+      document.getElementById('show-basic-modal').addEventListener('click', () => {
+        showModal(`
+          <div class="text-center">
+            <h3 class="text-lg font-semibold mb-4">Modal Básico</h3>
+            <p class="text-gray-600 mb-6">Este es un ejemplo de modal básico con contenido personalizado.</p>
+            <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">
+              Cerrar
+            </button>
+          </div>
+        `, {
+          title: 'Modal de Ejemplo',
+          size: 'md'
+        });
+      });
+
+      // Confirm Modal
+      document.getElementById('show-confirm-modal').addEventListener('click', async () => {
+        const result = await showConfirm(
+          '¿Estás seguro que deseas eliminar este elemento? Esta acción no se puede deshacer.',
+          {
+            title: 'Confirmar Eliminación',
+            confirmText: 'Sí, eliminar',
+            type: 'danger'
+          }
+        );
+        
+        if (result) {
+          console.log('User confirmed deletion');
+        } else {
+          console.log('User cancelled deletion');
+        }
+      });
+
+      // Alert Modal
+      document.getElementById('show-alert-modal').addEventListener('click', () => {
+        showAlert(
+          'Tu reserva ha sido confirmada exitosamente. Recibirás un email de confirmación en breve.',
+          {
+            title: '¡Reserva Confirmada!',
+            type: 'success',
+            icon: 'check-circle'
+          }
+        );
+      });
+
+      // Form Modal
+      document.getElementById('show-form-modal').addEventListener('click', () => {
+        showModal(`
+          <form class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Nombre completo</label>
+              <input type="text" class="input input-md" placeholder="Tu nombre...">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Email</label>
+              <input type="email" class="input input-md" placeholder="tu@email.com">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Mensaje</label>
+              <textarea class="input input-md" rows="3" placeholder="Escribe tu mensaje..."></textarea>
+            </div>
+          </form>
+        `, {
+          title: 'Formulario de Contacto',
+          size: 'md',
+          showFooter: true,
+          footer: `
+            <div class="modal-actions">
+              <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">
+                Cancelar
+              </button>
+              <button class="btn btn-primary">
+                Enviar
+              </button>
+            </div>
+          `
+        });
+      });
+
+      // Test modal button
+      document.getElementById('modal-test').addEventListener('click', () => {
+        showModal(`
+          <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              ${renderIcon('check', { size: '32', color: '#10B981' })}
+            </div>
+            <h3 class="text-xl font-semibold mb-2">¡Componentes Listos!</h3>
+            <p class="text-gray-600">El sistema de componentes de Kalos está funcionando correctamente.</p>
+          </div>
+        `, {
+          title: 'Sistema de Componentes',
+          size: 'sm'
+        });
+      });
+    }
+
+    // Initialize everything
+    initializeShowcase();
+
+    console.log('🎨 Kalos Design System Showcase initialized successfully!');
+  </script>
+</body>
+</html>

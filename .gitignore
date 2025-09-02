@@ -1,1 +1,71 @@
 node_modules
+.env.local
+.env
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test files (temporary)
+*-test.html
+test-*.html
+*-test.js
+demo-test.html
+clear-storage.html
+header-visual-test.html
+header-test-console.js
+refresh-header.html
+simple-test.html
+test-header-update.html
+test-login.html
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Local environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

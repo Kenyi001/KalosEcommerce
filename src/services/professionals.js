@@ -149,10 +149,20 @@ class ProfessionalService {
     try {
       let professionalQuery = collection(db, 'professionals');
       
-      // Base filters for active verified professionals
+      // NOTE: Esta query requiere índice compuesto en Firestore
+      // Para crear el índice, usa el link autogenerado que aparece en los logs de la consola:
+      // https://console.firebase.google.com/project/[PROJECT]/firestore/indexes?create_composite=...
+      // 
+      // Campos del índice requerido para búsqueda básica:
+      // - status (==)
+      // - verification.status (==) 
+      // - __name__ (asc) - agregado automáticamente
+      //
+      // Si se usa con filtros adicionales (categoría, ubicación, orderBy), requerirá índices adicionales
+      
+      // Base filters for active professionals (simplified to avoid index)
       const constraints = [
-        where('status', '==', 'active'),
-        where('verification.status', '==', 'approved')
+        where('status', '==', 'active')
       ];
       
       // Apply category filter
@@ -169,15 +179,15 @@ class ProfessionalService {
         constraints.push(where('location.city', '==', filters.city));
       }
       
-      // Apply rating filter
-      if (filters.minRating && filters.minRating > 0) {
-        constraints.push(where('stats.averageRating', '>=', filters.minRating));
-      }
+      // Apply rating filter (temporarily disabled to avoid index requirements)
+      // if (filters.minRating && filters.minRating > 0) {
+      //   constraints.push(where('stats.averageRating', '>=', filters.minRating));
+      // }
       
-      // Apply sorting
-      const sortBy = filters.sortBy || 'stats.averageRating';
-      const sortOrder = filters.sortOrder || 'desc';
-      constraints.push(orderBy(sortBy, sortOrder));
+      // Apply sorting (temporarily disabled to avoid index requirements)
+      // const sortBy = filters.sortBy || 'stats.averageRating';
+      // const sortOrder = filters.sortOrder || 'desc';
+      // constraints.push(orderBy(sortBy, sortOrder));
       
       // Apply pagination
       const pageSize = pagination.limit || 12;
@@ -424,6 +434,18 @@ class ProfessionalService {
    */
   async getFeaturedProfessionals(limit = 8) {
     try {
+      // NOTE: Esta query requiere índice compuesto en Firestore para profesionales destacados
+      // Para crear el índice, usa el link autogenerado que aparece en los logs de la consola:
+      // https://console.firebase.google.com/project/[PROJECT]/firestore/indexes?create_composite=...
+      // 
+      // Campos del índice requerido para profesionales destacados:
+      // - status (==)
+      // - verification.status (==)
+      // - stats.averageRating (>=)  
+      // - stats.averageRating (desc) - para orderBy
+      // - stats.totalReviews (desc) - para orderBy secundario
+      // - __name__ (asc) - agregado automáticamente
+      
       const featuredQuery = query(
         collection(db, 'professionals'),
         where('status', '==', 'active'),

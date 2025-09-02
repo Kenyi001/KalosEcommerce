@@ -1,0 +1,422 @@
+/**
+ * FormField Component Styles - Kalos Design System
+ * Comprehensive form field styling with validation states and accessibility
+ */
+
+/* Form Field Container */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1_5);
+  width: 100%;
+}
+
+/* Form Label */
+.form-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  line-height: var(--line-height-snug);
+  margin-bottom: var(--space-1);
+}
+
+.form-label-required {
+  /* Additional styles for required labels if needed */
+}
+
+.form-required-indicator {
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--space-1);
+}
+
+/* Input Wrapper */
+.form-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Base Input Styles */
+.form-input {
+  /* Layout */
+  display: block;
+  width: 100%;
+  min-height: var(--space-10);
+  
+  /* Typography */
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-gray-900);
+  
+  /* Appearance */
+  background-color: var(--color-kalos-white);
+  border: var(--border-1) solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  
+  /* Spacing */
+  padding: var(--space-2_5) var(--space-3);
+  
+  /* Transitions */
+  transition: var(--transition-fast);
+  transition-property: border-color, box-shadow, background-color;
+  
+  /* Remove default styles */
+  outline: none;
+  appearance: none;
+  
+  /* Placeholder */
+  &::placeholder {
+    color: var(--color-gray-400);
+  }
+}
+
+/* Textarea specific styles */
+.form-input[type="textarea"],
+textarea.form-input {
+  resize: vertical;
+  min-height: var(--space-20);
+  padding: var(--space-3);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Select specific styles */
+select.form-input {
+  cursor: pointer;
+  padding-right: var(--space-10);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right var(--space-2_5) center;
+  background-repeat: no-repeat;
+  background-size: var(--space-4);
+}
+
+/* Input States */
+
+/* Focused State */
+.form-input:focus,
+.form-input.form-input-focused {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px var(--color-brand-subtle);
+  background-color: var(--color-kalos-white);
+}
+
+/* Error State */
+.form-input.form-input-error {
+  border-color: var(--color-error);
+  background-color: var(--color-error-subtle);
+}
+
+.form-input.form-input-error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Success State (when validation passes) */
+.form-input.form-input-success {
+  border-color: var(--color-success);
+  background-color: var(--color-success-subtle);
+}
+
+.form-input.form-input-success:focus {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Disabled State */
+.form-input.form-input-disabled,
+.form-input:disabled {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.form-input.form-input-disabled::placeholder,
+.form-input:disabled::placeholder {
+  color: var(--color-gray-300);
+}
+
+/* Readonly State */
+.form-input.form-input-readonly,
+.form-input:read-only {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  cursor: default;
+}
+
+/* Validation Icons */
+.form-validation-icon {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-5);
+  height: var(--space-5);
+  pointer-events: none;
+}
+
+.form-validation-icon-error {
+  color: var(--color-error);
+}
+
+.form-validation-icon-success {
+  color: var(--color-success);
+}
+
+/* Adjust padding when validation icon is present */
+.form-input-wrapper:has(.form-validation-icon) .form-input {
+  padding-right: var(--space-10);
+}
+
+/* Error Message */
+.form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  line-height: var(--line-height-snug);
+}
+
+.form-error-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+  margin-top: var(--space-0_5);
+}
+
+/* Success Message */
+.form-success {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+  line-height: var(--line-height-snug);
+}
+
+.form-success-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+  margin-top: var(--space-0_5);
+}
+
+/* Help Text */
+.form-help-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  line-height: var(--line-height-snug);
+}
+
+/* Input Size Variants */
+.form-field-sm .form-input {
+  min-height: var(--space-8);
+  padding: var(--space-2) var(--space-2_5);
+  font-size: var(--font-size-sm);
+}
+
+.form-field-sm .form-label {
+  font-size: var(--font-size-xs);
+}
+
+.form-field-lg .form-input {
+  min-height: var(--space-12);
+  padding: var(--space-3_5) var(--space-4);
+  font-size: var(--font-size-lg);
+}
+
+.form-field-lg .form-label {
+  font-size: var(--font-size-base);
+}
+
+/* Form Group Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-group-horizontal {
+  flex-direction: row;
+  align-items: end;
+}
+
+.form-group-horizontal .form-field {
+  flex: 1;
+}
+
+/* Input Group (for icons, buttons, etc.) */
+.form-input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.form-input-group .form-input {
+  flex: 1;
+  border-radius: 0;
+}
+
+.form-input-group .form-input:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.form-input-group .form-input:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.form-input-group-addon {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2_5) var(--space-3);
+  background-color: var(--color-gray-50);
+  border: var(--border-1) solid var(--color-gray-300);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.form-input-group-addon:first-child {
+  border-right: none;
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.form-input-group-addon:last-child {
+  border-left: none;
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+/* Checkbox and Radio Styles */
+.form-checkbox,
+.form-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.form-checkbox input[type="checkbox"],
+.form-radio input[type="radio"] {
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: 0;
+  margin-top: var(--space-0_5);
+  cursor: pointer;
+  accent-color: var(--color-brand);
+}
+
+.form-checkbox-label,
+.form-radio-label {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-700);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+}
+
+/* Form Sections */
+.form-section {
+  padding: var(--space-6) 0;
+}
+
+.form-section:not(:last-child) {
+  border-bottom: var(--border-1) solid var(--color-gray-200);
+}
+
+.form-section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--space-4);
+}
+
+.form-section-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin-bottom: var(--space-6);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .form-group-horizontal {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .form-input-group {
+    flex-direction: column;
+  }
+  
+  .form-input-group .form-input,
+  .form-input-group-addon {
+    border-radius: var(--radius-md);
+  }
+  
+  .form-input-group .form-input:not(:last-child),
+  .form-input-group-addon:not(:last-child) {
+    margin-bottom: -1px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  
+  .form-input-group .form-input:not(:first-child),
+  .form-input-group-addon:not(:first-child) {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
+
+/* Dark Mode Support (if implemented) */
+@media (prefers-color-scheme: dark) {
+  .form-input {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-600);
+    color: var(--color-gray-100);
+  }
+  
+  .form-input::placeholder {
+    color: var(--color-gray-400);
+  }
+  
+  .form-label {
+    color: var(--color-gray-200);
+  }
+  
+  .form-help-text {
+    color: var(--color-gray-400);
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .form-input {
+    border-width: var(--border-2);
+  }
+  
+  .form-input:focus {
+    outline: var(--border-2) solid;
+    outline-offset: var(--space-1);
+  }
+  
+  .form-input.form-input-error {
+    outline: var(--border-2) solid var(--color-error);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .form-input {
+    transition: none;
+  }
+}

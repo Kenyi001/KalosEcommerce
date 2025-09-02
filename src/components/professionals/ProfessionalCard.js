@@ -52,9 +52,9 @@ export class ProfessionalCard {
           </div>
           
           <!-- Rating badge -->
-          ${options.showStats && rating > 0 ? `
-            <div class="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center space-x-1">
-              <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+          ${rating > 0 ? `
+            <div class="absolute top-3 right-3 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center space-x-1">
+              <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
               <span class="text-sm font-medium text-gray-700">${rating.toFixed(1)}</span>
@@ -64,65 +64,63 @@ export class ProfessionalCard {
 
         <!-- Content -->
         <div class="p-4">
-          <!-- Business name and professional name -->
+          <!-- Name and business -->
           <div class="mb-2">
-            <h3 class="font-semibold text-lg text-navy-900 line-clamp-1">${businessName}</h3>
-            <p class="text-sm text-gray-600">${name}</p>
+            <h3 class="font-semibold text-lg text-gray-900 truncate">${name}</h3>
+            <p class="text-sm text-gray-600 truncate">${businessName}</p>
           </div>
+
+          <!-- Description -->
+          <p class="text-sm text-gray-700 mb-3 line-clamp-2">${description}</p>
 
           <!-- Categories -->
           ${options.showCategories && categories.length > 0 ? `
-            <div class="mb-3">
-              <div class="flex flex-wrap gap-1">
-                ${categories.slice(0, 3).map(category => `
-                  <span class="inline-block px-2 py-1 bg-brand-100 text-brand-800 text-xs rounded-full capitalize">
-                    ${this._formatCategory(category)}
-                  </span>
-                `).join('')}
-                ${categories.length > 3 ? `
-                  <span class="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    +${categories.length - 3} más
-                  </span>
-                ` : ''}
-              </div>
+            <div class="flex flex-wrap gap-1 mb-3">
+              ${categories.slice(0, 3).map(category => `
+                <span class="inline-block bg-brand-100 text-brand-800 text-xs px-2 py-1 rounded-full">
+                  ${category}
+                </span>
+              `).join('')}
+              ${categories.length > 3 ? `
+                <span class="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                  +${categories.length - 3}
+                </span>
+              ` : ''}
             </div>
           ` : ''}
 
-          <!-- Description -->
-          <p class="text-sm text-gray-600 mb-3 line-clamp-2">${description}</p>
+          <!-- Location -->
+          ${options.showLocation && location ? `
+            <div class="flex items-center text-sm text-gray-600 mb-3">
+              <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="truncate">${locationText}</span>
+            </div>
+          ` : ''}
 
-          <!-- Stats and location -->
-          <div class="flex items-center justify-between text-xs text-gray-500">
-            ${options.showLocation ? `
-              <div class="flex items-center space-x-1">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-                <span class="truncate">${locationText}</span>
-              </div>
-            ` : ''}
-
-            ${options.showStats ? `
-              <div class="flex items-center space-x-3">
-                ${reviewCount > 0 ? `
-                  <span>${reviewCount} reseña${reviewCount !== 1 ? 's' : ''}</span>
-                ` : ''}
-                ${stats?.totalServices > 0 ? `
-                  <span>${stats.totalServices} servicio${stats.totalServices !== 1 ? 's' : ''}</span>
-                ` : ''}
-              </div>
-            ` : ''}
-          </div>
+          <!-- Stats -->
+          ${options.showStats ? `
+            <div class="flex items-center space-x-3">
+              ${reviewCount > 0 ? `
+                <span class="text-sm text-gray-600">${reviewCount} reseña${reviewCount !== 1 ? 's' : ''}</span>
+              ` : ''}
+              ${stats?.totalServices > 0 ? `
+                <span class="text-sm text-gray-600">${stats.totalServices} servicio${stats.totalServices !== 1 ? 's' : ''}</span>
+              ` : ''}
+            </div>
+          ` : ''}
 
           <!-- Action buttons -->
           <div class="mt-4 flex space-x-2">
             <button class="flex-1 bg-brand text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-brand-600 transition-colors"
-                    onclick="window.dispatchEvent(new CustomEvent('view-professional', { detail: { professionalId: '${professional.id}' } }))">
+                    data-action="view-professional">
               Ver Perfil
             </button>
-            ${location?.homeService ? `
-              <button class="flex-1 bg-navy-100 text-navy-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-navy-200 transition-colors"
-                      onclick="window.dispatchEvent(new CustomEvent('book-service', { detail: { professionalId: '${professional.id}' } }))">
+            ${options.showBookButton ? `
+              <button class="flex-1 bg-navy text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-navy-600 transition-colors"
+                      data-action="book-professional">
                 Reservar
               </button>
             ` : ''}
@@ -133,54 +131,78 @@ export class ProfessionalCard {
   }
 
   /**
-   * Format category name for display
-   * @private
-   * @param {string} category - Category key
-   * @returns {string} Formatted category name
+   * Mount the card to a container
+   * @param {HTMLElement} container - Container element
+   * @returns {ProfessionalCard} This instance for chaining
    */
-  _formatCategory(category) {
-    const categoryNames = {
-      hair: 'Cabello',
-      nails: 'Uñas',
-      makeup: 'Maquillaje',
-      skincare: 'Cuidado de piel',
-      massage: 'Masajes',
-      eyebrows: 'Cejas',
-      eyelashes: 'Pestañas'
-    };
-    
-    return categoryNames[category] || category;
+  mount(container) {
+    if (!container) {
+      console.error('ProfessionalCard: Container is required');
+      return this;
+    }
+
+    container.innerHTML = this.render();
+    this.element = container.firstElementChild;
+
+    // Add event listeners
+    this.bindEvents();
+
+    return this;
   }
 
   /**
-   * Mount the card to a container
-   * @param {HTMLElement|string} container - Container element or selector
+   * Bind event listeners to the card
+   * @private
    */
-  mount(container) {
-    if (typeof container === 'string') {
-      container = document.querySelector(container);
+  bindEvents() {
+    if (!this.element) return;
+
+    // Handle view professional event
+    const viewButton = this.element.querySelector('[data-action="view-professional"]');
+    if (viewButton) {
+      viewButton.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('view-professional', {
+          detail: { professionalId: this.professional.id }
+        }));
+      });
     }
 
-    if (container) {
-      const cardElement = document.createElement('div');
-      cardElement.innerHTML = this.render();
-      const cardNode = cardElement.firstElementChild;
-      
-      // Add click handler if clickable
-      if (this.options.clickable) {
-        cardNode.addEventListener('click', (e) => {
-          // Don't trigger if clicking on action buttons
-          if (!e.target.closest('button')) {
-            window.dispatchEvent(new CustomEvent('view-professional', { 
-              detail: { professionalId: this.professional.id } 
-            }));
-          }
-        });
-      }
-
-      container.appendChild(cardNode);
-      return cardNode;
+    // Handle book professional event
+    const bookButton = this.element.querySelector('[data-action="book-professional"]');
+    if (bookButton) {
+      bookButton.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('book-professional', {
+          detail: { professionalId: this.professional.id }
+        }));
+      });
     }
+  }
+
+  /**
+   * Update the card with new professional data
+   * @param {Object} professional - New professional data
+   * @returns {ProfessionalCard} This instance for chaining
+   */
+  update(professional) {
+    this.professional = professional;
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.innerHTML = this.render();
+      this.element = this.element.parentNode.firstElementChild;
+      this.bindEvents();
+    }
+    return this;
+  }
+
+  /**
+   * Remove the card from the DOM
+   * @returns {ProfessionalCard} This instance for chaining
+   */
+  remove() {
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = null;
+    }
+    return this;
   }
 
   /**
